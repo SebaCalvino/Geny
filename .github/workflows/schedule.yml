@@ -1,0 +1,27 @@
+name: maker-bot
+on:
+  schedule:
+    - cron: "*/20 * * * *"     # cada 20 min
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # permitir commits al repo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Run orchestrator once
+        run: python orchestrator.py
+      - name: Commit outputs if changed
+        run: |
+          git config user.name "maker-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --staged --quiet || git commit -m "bot: nuevos artefactos"
+          git push
