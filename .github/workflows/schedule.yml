@@ -2,16 +2,16 @@ name: maker-bot
 
 on:
   push:
-    branches: [ main ]          # corre en cada push a main
-  workflow_dispatch:            # botón "Run workflow"
+    branches: [ main ]
+  workflow_dispatch:
   schedule:
-    - cron: "*/20 * * * *"      # cada 20 minutos
+    - cron: "*/20 * * * *"
 
 jobs:
   run:
     runs-on: ubuntu-latest
     permissions:
-      contents: write           # permitir commits automáticos
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,20 +24,21 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt || true
 
       - name: Sanity check
         run: |
+          echo "pwd=$(pwd)"
           ls -la
-          test -f config.yaml || (echo "❌ Falta config.yaml en la raíz" && exit 1)
+          test -f orchestrator.py || (echo "❌ falta orchestrator.py en la raíz" && exit 1)
+          test -f config.yaml || (echo "⚠️ no hay config.yaml, se usarán defaults")
 
       - name: Run orchestrator once (with timeout)
         run: |
           set -e
-          echo "RUN_ONCE=$RUN_ONCE"
           timeout 90s python orchestrator.py
         env:
-          RUN_ONCE: "1"         # fuerza una sola iteración en Actions
+          RUN_ONCE: "1"
 
       - name: Commit outputs if changed
         run: |
