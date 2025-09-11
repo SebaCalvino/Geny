@@ -3,7 +3,7 @@ name: maker-bot
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: {}
   schedule:
     - cron: "*/20 * * * *"
 
@@ -24,21 +24,22 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
+          echo -e "pyyaml\nflask" >> requirements.txt
           pip install -r requirements.txt || true
 
       - name: Sanity check
         run: |
-          echo "pwd=$(pwd)"
           ls -la
           test -f orchestrator.py || (echo "❌ falta orchestrator.py en la raíz" && exit 1)
-          test -f config.yaml || (echo "⚠️ no hay config.yaml, se usarán defaults")
+          test -f factories/__init__.py || (echo "❌ falta factories/__init__.py" && exit 1)
+          if [ -f config.yaml ]; then echo "✅ config.yaml está"; else echo "⚠️ sin config.yaml (defaults)"; fi
 
       - name: Run orchestrator once (with timeout)
+        env:
+          RUN_ONCE: "1"
         run: |
           set -e
           timeout 90s python orchestrator.py
-        env:
-          RUN_ONCE: "1"
 
       - name: Commit outputs if changed
         run: |
