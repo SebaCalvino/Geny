@@ -1,13 +1,24 @@
 name: maker-bot
+
 on:
+  push:                     # corre en cada push a main
+    branches: [ main ]
+    paths:
+      - "**.py"
+      - "config.yaml"
+      - ".github/workflows/**"
+      - "requirements.txt"
+      - "server/**"
+      - "factories/**"
+  workflow_dispatch:        # botón "Run workflow"
   schedule:
-    - cron: "*/20 * * * *"     # cada 20 min
-  workflow_dispatch:
+    - cron: "*/20 * * * *"  # cada 20 minutos
+
 jobs:
   run:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # permitir commits al repo
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -15,7 +26,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -r requirements.txt
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true    # por si aún no lo subiste
+      - name: Sanity check
+        run: |
+          echo "Python: $(python --version)"
+          ls -la
+          echo "Starting orchestrator..."
       - name: Run orchestrator once
         run: python orchestrator.py
       - name: Commit outputs if changed
