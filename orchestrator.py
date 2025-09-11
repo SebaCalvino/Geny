@@ -1,12 +1,41 @@
 import os, time, random, sqlite3, json, datetime
 from pathlib import Path
+import yaml
+
+# fábricas
 from factories.factory_images import make_images
 from factories.factory_websites import make_website
 from factories.factory_games import make_game
-import yaml
 
+# -------- Config por defecto (fallback) --------
+DEFAULT_CFG = {
+    "mode": os.environ.get("MODE", "local"),
+    "interval_minutes": 20,
+    "daily_budget_usd": 1.5,
+    "max_items_per_day": {"images": 6, "websites": 3, "games": 2},
+    "random_weights": {"images": 0.5, "websites": 0.35, "games": 0.15},
+    "providers": {"images": {"engine": "openai"}, "code": {"engine": "openai"}},
+    "paths": {"output": "./output", "db": "./log/status.db"},
+    "telegram": {"enabled": False}
+}
+
+PAUSE_FLAG = Path("./log/pause.flag")
+
+# -------- Utilidades --------
 def load_cfg():
-    with open("config.yaml", "r") as f: return yaml.safe_load(f)
+    # 1) Permite override por variable de entorno CONFIG_PATH
+    cfg_path = os.environ.get("CONFIG_PATH")
+    if cfg_path and Path(cfg_path).is_file():
+        with open(cfg_path, "r") as f:
+            return {**DEFAULT_CFG, **yaml.safe_load(f)}
+    # 2) Busca config local .yaml o .yml
+    here = Path(__file__).parent
+    for candidate in [here / "config.yaml", here / "config.yml", Path.cwd() / "config.yaml", Path.cwd() / "config.yml"]:
+        if candidate.is_file():
+            with open(candidate, "r") as f:
+                return {**DEFAULT_CFG, **yaml.safe_load(f)}
+    print("[warn] config no encontrada, usando DEFAULT_CFG")
+    return DEFAULT_CFG
 
 def ensure_db(db_path):
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
@@ -21,7 +50,8 @@ def ensure_db(db_path):
     )""")
     con.commit(); con.close()
 
-def today_key(): return datetime.date.today().isoformat()
+def today_key():
+    return datetime.date.today().isoformat()
 
 def read_counters(con, day):
     cur = con.cursor()
@@ -52,12 +82,61 @@ def pick_kind(cfg, counters):
         candidates += ["games"] * int(weights["games"]*100)
     return random.choice(candidates) if candidates else None
 
+# -------- Iteración única (para GitHub Actions) --------
+def one_iteration(cfg):
+    day = today_key()
+    con = sqlite3.connect(cfg["paths"]["db"])
+    counters = read_counters(con, day)
+
+    # respetar pausa si existiera
+    if PAUSE_FLAG.exists():
+        con.close()
+        print("[maker-bot] en pausa")
+        return "paused"
+
+    # límites de presupuesto
+    if counters["cost"] >= cfg["daily_budget_usd"]:
+        con.close()
+        print("[maker-bot] presupuesto diario alcanzado")
+        return "budget_exceeded"
+
+    kind = pick_kind(cfg, counters)
+    if not kind:
+        con.close()
+        print("[maker-bot] no hay candidatos por límites diarios")
+        return "no_candidates"
+
+    out_root = Path(cfg["paths"]["output"]); out_root.mkdir(parents=True, exist_ok=True)
+    today_dir = out_root / day; today_dir.mkdir(exist_ok=True)
+
+    try:
+        if kind == "images":
+            title, relpath, cost, meta = make_images(today_dir); counters["images"] += 1
+        elif kind == "websites":
+            title, relpath, cost, meta = make_website(today_dir); counters["websites"] += 1
+        else:
+            title, relpath, cost, meta = make_game(today_dir); counters["games"] += 1
+
+        counters["cost"] += cost
+        register_item(con, kind, title, str(relpath), cost, meta)
+        write_counters(con, day, counters)
+        print(f"[maker-bot] created: {kind} -> {relpath}")
+    finally:
+        con.close()
+
+    return f"ok:{kind}"
+
+# -------- Loop continuo (para uso local/servidor) --------
 def main_loop():
     cfg = load_cfg()
     ensure_db(cfg["paths"]["db"])
     out_root = Path(cfg["paths"]["output"]); out_root.mkdir(parents=True, exist_ok=True)
 
     while True:
+        if PAUSE_FLAG.exists():
+            time.sleep(30)
+            continue
+
         day = today_key()
         con = sqlite3.connect(cfg["paths"]["db"])
         counters = read_counters(con, day)
@@ -93,5 +172,12 @@ def main_loop():
         con.close()
         time.sleep(cfg["interval_minutes"]*60)
 
+# -------- Entry point --------
 if __name__ == "__main__":
-    main_loop()
+    cfg = load_cfg()
+    ensure_db(cfg["paths"]["db"])
+    run_once = os.environ.get("RUN_ONCE") == "1" or cfg.get("mode") == "github_actions"
+    if run_once:
+        print(one_iteration(cfg))
+    else:
+        main_loop()
