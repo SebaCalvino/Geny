@@ -1,0 +1,65 @@
+name: maker-bot-debug
+
+on:
+  workflow_dispatch: {}    # botón "Run workflow"
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps (safe)
+        run: |
+          python -m pip install --upgrade pip
+          # aseguramos deps mínimas
+          echo -e "pyyaml\nflask" >> requirements.txt
+          pip install -r requirements.txt || true
+
+      - name: Show repo tree
+        run: |
+          echo "PWD=$(pwd)"
+          ls -la
+          echo "---- factories ----"
+          ls -la factories || true
+          echo "---- head orchestrator.py ----"
+          sed -n '1,120p' orchestrator.py || true
+
+      - name: Sanity check
+        run: |
+          test -f orchestrator.py || (echo "❌ falta orchestrator.py en raíz" && exit 1)
+          if [ -f config.yaml ]; then echo "✅ config.yaml está"; else echo "⚠️ sin config.yaml (se usarán defaults)"; fi
+          if [ -f factories/__init__.py ]; then echo "✅ factories/__init__.py OK"; else echo "❌ falta factories/__init__.py" && exit 1; fi
+
+      - name: Run one iteration with traceback
+        env:
+          RUN_ONCE: "1"
+        run: |
+          python - <<'PY'
+          import traceback, sys
+          try:
+              import orchestrator
+              cfg = orchestrator.load_cfg()
+              orchestrator.ensure_db(cfg["paths"]["db"])
+              print("CFG OK:", cfg)
+              res = orchestrator.one_iteration(cfg) if hasattr(orchestrator, "one_iteration") else None
+              print("RESULT:", res)
+          except Exception as e:
+              print("\n===== TRACEBACK =====")
+              traceback.print_exc()
+              sys.exit(1)
+          PY
+
+      - name: Commit outputs if changed
+        run: |
+          git config user.name "maker-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --staged --quiet || git commit -m "bot: nuevos artefactos (debug)"
+          git push
