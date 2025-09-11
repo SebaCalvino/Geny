@@ -7,33 +7,26 @@ from factories.factory_images import make_images
 from factories.factory_websites import make_website
 from factories.factory_games import make_game
 
-# -------- Config por defecto (fallback) --------
+# -------- Config por defecto --------
 DEFAULT_CFG = {
     "mode": os.environ.get("MODE", "local"),
     "interval_minutes": 20,
     "daily_budget_usd": 1.5,
     "max_items_per_day": {"images": 6, "websites": 3, "games": 2},
     "random_weights": {"images": 0.5, "websites": 0.35, "games": 0.15},
-    "providers": {"images": {"engine": "openai"}, "code": {"engine": "openai"}},
     "paths": {"output": "./output", "db": "./log/status.db"},
-    "telegram": {"enabled": False}
 }
 
 PAUSE_FLAG = Path("./log/pause.flag")
 
-# -------- Utilidades --------
+# -------- Helpers --------
 def load_cfg():
-    # 1) Permite override por variable de entorno CONFIG_PATH
-    cfg_path = os.environ.get("CONFIG_PATH")
-    if cfg_path and Path(cfg_path).is_file():
-        with open(cfg_path, "r") as f:
-            return {**DEFAULT_CFG, **yaml.safe_load(f)}
-    # 2) Busca config local .yaml o .yml
     here = Path(__file__).parent
-    for candidate in [here / "config.yaml", here / "config.yml", Path.cwd() / "config.yaml", Path.cwd() / "config.yml"]:
-        if candidate.is_file():
-            with open(candidate, "r") as f:
-                return {**DEFAULT_CFG, **yaml.safe_load(f)}
+    for candidate in ["config.yaml", "config.yml"]:
+        f = here / candidate
+        if f.exists():
+            with open(f, "r") as fh:
+                return {**DEFAULT_CFG, **yaml.safe_load(fh)}
     print("[warn] config no encontrada, usando DEFAULT_CFG")
     return DEFAULT_CFG
 
@@ -82,19 +75,17 @@ def pick_kind(cfg, counters):
         candidates += ["games"] * int(weights["games"]*100)
     return random.choice(candidates) if candidates else None
 
-# -------- Iteración única (para GitHub Actions) --------
+# -------- Iteración única --------
 def one_iteration(cfg):
     day = today_key()
     con = sqlite3.connect(cfg["paths"]["db"])
     counters = read_counters(con, day)
 
-    # respetar pausa si existiera
     if PAUSE_FLAG.exists():
         con.close()
         print("[maker-bot] en pausa")
         return "paused"
 
-    # límites de presupuesto
     if counters["cost"] >= cfg["daily_budget_usd"]:
         con.close()
         print("[maker-bot] presupuesto diario alcanzado")
@@ -103,7 +94,7 @@ def one_iteration(cfg):
     kind = pick_kind(cfg, counters)
     if not kind:
         con.close()
-        print("[maker-bot] no hay candidatos por límites diarios")
+        print("[maker-bot] no hay candidatos")
         return "no_candidates"
 
     out_root = Path(cfg["paths"]["output"]); out_root.mkdir(parents=True, exist_ok=True)
@@ -126,50 +117,11 @@ def one_iteration(cfg):
 
     return f"ok:{kind}"
 
-# -------- Loop continuo (para uso local/servidor) --------
-def main_loop():
-    cfg = load_cfg()
+# -------- Loop continuo --------
+def main_loop(cfg):
     ensure_db(cfg["paths"]["db"])
-    out_root = Path(cfg["paths"]["output"]); out_root.mkdir(parents=True, exist_ok=True)
-
     while True:
-        if PAUSE_FLAG.exists():
-            time.sleep(30)
-            continue
-
-        day = today_key()
-        con = sqlite3.connect(cfg["paths"]["db"])
-        counters = read_counters(con, day)
-
-        if counters["cost"] >= cfg["daily_budget_usd"]:
-            con.close(); time.sleep(60*15); continue
-
-        kind = pick_kind(cfg, counters)
-        if not kind:
-            con.close(); time.sleep(60*30); continue
-
-        today_dir = out_root / day
-        today_dir.mkdir(exist_ok=True)
-
-        try:
-            if kind == "images":
-                title, relpath, cost, meta = make_images(today_dir)
-                counters["images"] += 1
-            elif kind == "websites":
-                title, relpath, cost, meta = make_website(today_dir)
-                counters["websites"] += 1
-            else:
-                title, relpath, cost, meta = make_game(today_dir)
-                counters["games"] += 1
-
-            counters["cost"] += cost
-            register_item(con, kind, title, str(relpath), cost, meta)
-            write_counters(con, day, counters)
-
-        except Exception as e:
-            print("Error:", e)
-
-        con.close()
+        one_iteration(cfg)
         time.sleep(cfg["interval_minutes"]*60)
 
 # -------- Entry point --------
@@ -180,4 +132,4 @@ if __name__ == "__main__":
     if run_once:
         print(one_iteration(cfg))
     else:
-        main_loop()
+        main_loop(cfg)
