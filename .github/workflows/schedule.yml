@@ -2,16 +2,16 @@ name: maker-bot
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:       # permite correrlo manualmente
+    branches: [ main ]          # corre en cada push a main
+  workflow_dispatch:            # botón "Run workflow"
   schedule:
-    - cron: "*/20 * * * *" # cada 20 minutos
+    - cron: "*/20 * * * *"      # cada 20 minutos
 
 jobs:
   run:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write           # permitir commits automáticos
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,12 +29,15 @@ jobs:
       - name: Sanity check
         run: |
           ls -la
-          test -f config.yaml || (echo "❌ Falta config.yaml" && exit 1)
+          test -f config.yaml || (echo "❌ Falta config.yaml en la raíz" && exit 1)
 
-      - name: Run orchestrator once
-        run: python orchestrator.py
+      - name: Run orchestrator once (with timeout)
+        run: |
+          set -e
+          echo "RUN_ONCE=$RUN_ONCE"
+          timeout 90s python orchestrator.py
         env:
-          RUN_ONCE: "1"
+          RUN_ONCE: "1"         # fuerza una sola iteración en Actions
 
       - name: Commit outputs if changed
         run: |
