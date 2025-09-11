@@ -1,0 +1,23 @@
+mode: "local"        # o "github_actions"
+interval_minutes: 20
+daily_budget_usd: 1.5
+max_items_per_day:
+  images: 6
+  websites: 3
+  games: 2
+random_weights:
+  images: 0.5
+  websites: 0.35
+  games: 0.15
+providers:
+  images:
+    engine: "openai"
+  code:
+    engine: "openai"
+paths:
+  output: "./output"
+  db: "./log/status.db"
+telegram:
+  enabled: false
+  bot_token: "ENV:TELEGRAM_BOT_TOKEN"
+  chat_id: "ENV:TELEGRAM_CHAT_ID"
