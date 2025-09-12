@@ -1,50 +1,61 @@
 name: maker-bot
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch: {}
   schedule:
-    - cron: "*/20 * * * *"
+    - cron: "*/30 * * * *"   # cada 30 minutos
+  workflow_dispatch:
+
+permissions:
+  contents: write   # NECESARIO para poder hacer git push
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
+          fetch-depth: 0           # full history
           persist-credentials: true
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          echo -e "pyyaml\nflask" >> requirements.txt
-          pip install -r requirements.txt || true
+          pip install -r requirements.txt
 
       - name: Sanity check
-        run: |
-          ls -la
-          test -f orchestrator.py || (echo "❌ falta orchestrator.py en la raíz" && exit 1)
-          test -f factories/__init__.py || (echo "❌ falta factories/__init__.py" && exit 1)
-          if [ -f config.yaml ]; then echo "✅ config.yaml está"; else echo "⚠️ sin config.yaml (defaults)"; fi
+        run: python -c "print('ok')"
 
       - name: Run orchestrator once (with timeout)
-        env:
-          RUN_ONCE: "1"
+        working-directory: ${{ github.workspace }}
         run: |
           set -e
-          timeout 90s python orchestrator.py
+          echo "[maker-bot] usando config: ${{ github.workspace }}/config.yaml"
+          python orchestrator.py
 
       - name: Commit outputs if changed
+        working-directory: ${{ github.workspace }}
+        env:
+          TZ: UTC
         run: |
-          git config user.name "maker-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add -A
-          git diff --staged --quiet || git commit -m "bot: nuevos artefactos"
-          git push
+          set -e
+          echo "Archivos cambiados:"
+          git status --porcelain
+
+          CHANGES=$(git status --porcelain -- output/ | wc -l)
+          if [ "$CHANGES" -gt 0 ]; then
+            git config user.name  "maker-bot"
+            git config user.email "maker-bot@users.noreply.github.com"
+            git add -A output/
+            git commit -m "bot: nuevos artefactos"
+            git push
+            echo "✅ Cambios en output/ commiteados."
+          else
+            echo "ℹ️ No hay cambios en output/."
+          fi
