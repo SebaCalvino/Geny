@@ -1,0 +1,12 @@
+# Python / editor stuff
+__pycache__/
+*.pyc
+*.pyo
+*.DS_Store
+.venv/
+venv/
+.env
+
+# ¡No ignores los artefactos!
+!output/
+!output/**
