@@ -4,12 +4,12 @@ import random
 
 def make_game(output_dir: Path):
     """
-    Crea un mini Snake de una sola página en:
+    Genera un mini Snake en:
       output/<YYYY-MM-DD>/game_snake_<id>/index.html
 
-    Devuelve: (title, path_str, cost, meta_dict)
-    NOTA: devolvemos str(gdir) (no usamos .relative_to()) para evitar
-    el ValueError de rutas en GitHub Actions.
+    IMPORTANTE:
+    - Devolvemos str(gdir) en vez de gdir.relative_to(Path.cwd())
+      para evitar ValueError en GitHub Actions.
     """
     gdir = output_dir / f"game_snake_{random.randint(0, 16**6):06x}"
     gdir.mkdir(parents=True, exist_ok=True)
@@ -36,8 +36,7 @@ def make_game(output_dir: Path):
 <script>
 const cvs = document.getElementById('cv');
 const ctx = cvs.getContext('2d');
-const N = 20;                 // celdas por lado
-const S = cvs.width / N;      // tamaño de celda
+const N = 20, S = cvs.width / N;
 let snake, dir, food, score, tick, alive;
 
 function rnd(max){ return Math.floor(Math.random()*max); }
@@ -53,11 +52,9 @@ function reset(){
   score = 0;
   document.getElementById('score').textContent = score;
   placeFood();
-  tick = 120;  // ms
-  alive = true;
+  tick = 120; alive = true;
 }
 reset();
-
 document.getElementById('reset').onclick = reset;
 
 window.addEventListener('keydown', e=>{
@@ -71,42 +68,20 @@ window.addEventListener('keydown', e=>{
 function step(){
   if(!alive) return;
   const head = {x: (snake[0].x + dir.x + N) % N, y: (snake[0].y + dir.y + N) % N};
-  // choque con el cuerpo
   if(snake.some(p=>p.x===head.x && p.y===head.y)){ alive=false; return; }
   snake.unshift(head);
+  if(head.x===food.x && head.y===food.y){ score++; document.getElementById('score').textContent = score; placeFood(); if(tick>60) tick-=4; }
+  else{ snake.pop(); }
 
-  // comer
-  if(head.x===food.x && head.y===food.y){
-    score++; document.getElementById('score').textContent = score;
-    placeFood();
-    if(tick>60) tick-=4; // acelera un poco
-  }else{
-    snake.pop();
-  }
-
-  // dibujar
   ctx.clearRect(0,0,cvs.width,cvs.height);
-  // grid tenue
-  ctx.fillStyle = '#020';
-  for(let i=0;i<N;i++){ for(let j=0;j<N;j++){
-    if((i+j)%2===0) ctx.fillRect(i*S, j*S, S, S);
-  }}
-  // comida
-  ctx.fillStyle = '#f33';
-  ctx.fillRect(food.x*S, food.y*S, S, S);
-  // snake
-  ctx.fillStyle = '#0f0';
-  snake.forEach((p,i)=>{
-    ctx.fillRect(p.x*S, p.y*S, S, S);
-  });
-
+  ctx.fillStyle = '#020'; for(let i=0;i<N;i++){ for(let j=0;j<N;j++){ if((i+j)%2===0) ctx.fillRect(i*S, j*S, S, S); } }
+  ctx.fillStyle = '#f33'; ctx.fillRect(food.x*S, food.y*S, S, S);
+  ctx.fillStyle = '#0f0'; snake.forEach(p=>ctx.fillRect(p.x*S, p.y*S, S, S));
   setTimeout(step, tick);
 }
 step();
 </script>
 </html>"""
-
     (gdir / "index.html").write_text(html, encoding="utf-8")
 
-    # Devolvemos string del directorio (sin relative_to) para evitar errores en CI
     return "Juego — Snake", str(gdir), 0.0, {"type": "snake"}
