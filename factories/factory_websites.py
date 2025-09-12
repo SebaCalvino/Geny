@@ -1,43 +1,52 @@
-import random
+# factories/factory_websites.py
 from pathlib import Path
+import random
 
-STYLES = ["neumorphism", "glassmorphism", "brutalist", "retro-grid"]
+def make_website(output_dir: Path, topic="agencia_de_viajes", style="neumorphism"):
+    """
+    Genera una landing en:
+      output/<YYYY-MM-DD>/site_<topic>_<id>/index.html
 
-def make_website(outdir: Path):
-    topic = random.choice(["agencia de viajes", "cafetería retro", "estudio de diseño", "museo virtual"])
-    style = random.choice(STYLES)
-    site_dir = outdir / f"site_{topic.replace(' ','_')}_{style}"
+    Devuelve: (title, path_str, cost, meta_dict)
+    Usamos str(site_dir) (NO .relative_to()) para evitar errores de rutas en CI.
+    """
+    site_dir = output_dir / f"site_{topic}_{random.randint(0, 16**6):06x}"
     site_dir.mkdir(parents=True, exist_ok=True)
 
     html = f"""<!doctype html>
-<html lang="es"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{topic.title()} — {style}</title>
-<link rel="stylesheet" href="styles.css">
-</head><body>
-<header><h1>{topic.title()}</h1><p>Estilo: {style}</p></header>
-<main>
-<section class="hero"><h2>Bienvenido</h2><p>Demo generado automáticamente.</p></section>
-<section class="grid" id="cards"></section>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing — {topic}</title>
+<style>
+  :root {{
+    --bg:#eef2f7; --fg:#1f2937; --card:#e6ecf3; --shadow:#cfd8e3;
+  }}
+  * {{ box-sizing:border-box }}
+  body {{
+    margin:0; min-height:100vh; display:grid; place-items:center;
+    background:var(--bg); color:var(--fg);
+    font-family:system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }}
+  .card {{
+    width:min(900px,92vw); padding:32px; border-radius:20px; background:var(--card);
+    box-shadow: 15px 15px 30px var(--shadow), -15px -15px 30px #fff;
+  }}
+  h1 {{ margin:0 0 8px; font-size:clamp(28px,4vw,40px) }}
+  p {{ line-height:1.6; opacity:.9 }}
+  .cta {{
+    margin-top:18px; display:inline-block; padding:10px 16px; border-radius:12px;
+    background:#111; color:#fff; text-decoration:none
+  }}
+</style>
+<main class="card">
+  <h1>{topic.title()} — {style}</h1>
+  <p>Landing generada automáticamente por Maker Bot. Base lista para publicar.</p>
+  <a class="cta" href="#" onclick="alert('¡Bienvenido!')">Quiero saber más</a>
 </main>
-<script src="script.js"></script>
-</body></html>"""
+</html>
+"""
+    (site_dir / "index.html").write_text(html, encoding="utf-8")
 
-    css = """body{font-family:system-ui;margin:0;padding:0}
-header{padding:48px;text-align:center}
-.hero{padding:32px;text-align:center}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:24px}"""
-
-    js = """const el=document.getElementById('cards');
-for(let i=0;i<9;i++){
-  const c=document.createElement('article');
-  c.className='card';
-  c.innerHTML=`<h3>Item ${i+1}</h3><p>Contenido generado.</p>`;
-  el.appendChild(c);
-}"""
-
-    (site_dir/"index.html").write_text(html, encoding="utf-8")
-    (site_dir/"styles.css").write_text(css, encoding="utf-8")
-    (site_dir/"script.js").write_text(js, encoding="utf-8")
-
-    return f"Landing — {topic} ({style})", site_dir.relative_to(Path.cwd()), 0.0, {"topic": topic, "style": style}
+    # 👉 FIX: devolver string del directorio (nada de .relative_to(...))
+    return f"Landing — {topic} ({style})", str(site_dir), 0.0, {"topic": topic, "style": style}
