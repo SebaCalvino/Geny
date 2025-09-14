@@ -1,4 +1,3 @@
-# orchestrator.py
 from __future__ import annotations
 import json, random
 from datetime import datetime
@@ -24,7 +23,7 @@ def update_index():
     idx = ROOT / "output" / "index.md"
     lines = ["# Maker Bot — Outputs\n"]
     for day in sorted((ROOT / "output").glob("*"), reverse=True):
-        if not day.is_dir() or day.name == "assets": 
+        if not day.is_dir() or day.name == "assets":
             continue
         lines.append(f"## {day.name}")
         for p in sorted(day.iterdir()):
@@ -34,7 +33,6 @@ def update_index():
     idx.write_text("\n".join(lines), encoding="utf-8")
 
 def create_min_artifact():
-    # ítem simple y reproducible
     txt = OUT / f"note_{datetime.now().strftime('%H%M%S')}.md"
     txt.write_text(
         f"# Auto note\n\nFecha: {datetime.now().isoformat()}\n\nIdea: {random.choice(['épicas imágenes','mini-web','juego simple'])}\n",
