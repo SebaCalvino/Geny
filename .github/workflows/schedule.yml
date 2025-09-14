@@ -32,9 +32,14 @@ jobs:
 
       - name: Sanity check
         run: |
-          python -c "from pathlib import Path; print('CWD:', Path.cwd()); print('Archivos en repo:', len(list(Path(\".\").rglob(\"*\"))))"
+          python - <<'PY'
+          from pathlib import Path
+          print("CWD:", Path.cwd())
+          print("Archivos en repo:", len(list(Path('.').rglob('*'))))
+PY
 
       - name: Run orchestrator (always create output + heartbeat)
+        shell: bash
         run: |
           set -e
           mkdir -p output
@@ -45,14 +50,18 @@ jobs:
             python orchestrator.py
           else
             echo "[orchestrator] NO existe orchestrator.py; generando salida mínima..."
-            python -c "
-from datetime import datetime
-from pathlib import Path
-d = Path('output') / datetime.now().strftime('%Y-%m-%d')
-d.mkdir(parents=True, exist_ok=True)
-(d / 'README.md').write_text('# Output\\n\\nPrimer run automático.\\n', encoding='utf-8')
-print('Escribí:', d)
-"
+
+            # Creamos un script Python con 'echo' (sin heredoc ni comillas raras)
+            TMP=.tmp_orchestrator_fallback.py
+            : > "$TMP"
+            echo "from datetime import datetime" >> "$TMP"
+            echo "from pathlib import Path" >> "$TMP"
+            echo "d = Path('output') / datetime.now().strftime('%Y-%m-%d')" >> "$TMP"
+            echo "d.mkdir(parents=True, exist_ok=True)" >> "$TMP"
+            echo "(d / 'README.md').write_text('# Output\\n\\nPrimer run automático.\\n', encoding='utf-8')" >> "$TMP"
+            echo "print('Escribí:', d)" >> "$TMP"
+
+            python "$TMP"
           fi
 
       - name: Mostrar cambios
