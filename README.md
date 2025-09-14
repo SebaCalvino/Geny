@@ -1,4 +1,4 @@
-# 🧙‍♂️ Maker Bot
+# 🧙‍♂️ Geny
 
 **Maker Bot** es un duende digital que nunca se queda quieto:  
 mientras vos hacés tus cosas, va creando **arte random**, **mini-páginas web** y **juegos simples** por su cuenta.  
