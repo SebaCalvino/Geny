@@ -3,6 +3,7 @@
 ## 2025-09-14
 - note_161155.md → `output/2025-09-14/note_161155.md`
 - note_164049.md → `output/2025-09-14/note_164049.md`
+- note_171605.md → `output/2025-09-14/note_171605.md`
 
 ## 2025-09-12
 - game_snake_446719 → `output/2025-09-12/game_snake_446719`
