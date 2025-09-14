@@ -2,11 +2,11 @@ name: Maker Bot schedule
 
 on:
   schedule:
-    # corre cada 30 minutos (UTC)
+    # Corre cada 30 minutos (UTC). Ajustá si querés otra cadencia.
     - cron: "*/30 * * * *"
   workflow_dispatch:
 
-# 🔐 Asegura permisos de escritura para el push (además de Settings del repo)
+# Además de esto, en Settings → Actions → Workflow permissions marcá "Read and write".
 permissions:
   contents: write
 
@@ -39,7 +39,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           print("CWD:", Path.cwd())
-          print("Repo files:", len(list(Path('.').rglob('*'))))
+          print("Archivos en repo:", len(list(Path('.').rglob('*'))))
           PY
 
       - name: Run orchestrator (always create output + heartbeat)
@@ -47,7 +47,7 @@ jobs:
         run: |
           set -e
           mkdir -p output
-          # heartbeat para garantizar un diff en cada run
+          # Heartbeat para garantizar un diff en cada run
           date -u +"%Y-%m-%dT%H:%M:%SZ" >> output/heartbeat.txt
 
           if [ -f orchestrator.py ]; then
@@ -63,29 +63,12 @@ jobs:
             (d / "README.md").write_text("# Output\n\nPrimer run automático.\n", encoding="utf-8")
             print("Escribí:", d)
             PY
+          fi
 
       - name: Mostrar cambios
         shell: bash
         run: |
           echo "=== git status ==="
           git status
-          echo "=== Últimos archivos en output/ ==="
-          ls -lah output || true
-          find output -maxdepth 2 -type f | sort | tail -n 50 || true
-
-      - name: Commit & push changes
-        shell: bash
-        run: |
-          set -e
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No hay cambios para commitear."
-            exit 0
-          fi
-
-          git commit -m "chore: auto-output $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          # por si hubo cambios remotos entre checkout y este push
-          git pull --rebase || true
-          git push
+          echo "=== Archivos recientes en output/ ==="
+          ls -lah output |
