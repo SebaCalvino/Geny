@@ -2,8 +2,8 @@ name: Maker Bot schedule
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # cada 30 minutos (UTC)
-  workflow_dispatch:
+    - cron: "*/30 * * * *"   # corre automáticamente cada 30 minutos (UTC)
+  workflow_dispatch:          # también podés correrlo a mano
 
 permissions:
   contents: write
@@ -32,26 +32,22 @@ jobs:
 
       - name: Sanity check
         run: |
-          python -c "
-          from pathlib import Path
-          print('CWD:', Path.cwd())
-          print('Archivos en repo:', len(list(Path('.').rglob('*'))))
-          "
+          python -c "from pathlib import Path; import os; print('CWD:', Path.cwd()); print('Files:', len(list(Path('.').rglob('*'))))"
 
       - name: Run orchestrator (always create output + heartbeat)
         shell: bash
         run: |
           set -e
           mkdir -p output
+          # heartbeat para mantener actividad del repo y que el cron no se “duerma”
           date -u +"%Y-%m-%dT%H:%M:%SZ" >> output/heartbeat.txt
 
           if [ -f orchestrator.py ]; then
             echo "[orchestrator] ejecutando..."
             python orchestrator.py
           else
-            echo "[orchestrator] NO existe orchestrator.py; generando salida mínima..."
-
-            # Creamos un script Python con 'echo' (sin heredoc ni comillas raras)
+            echo "[orchestrator] NO existe orchestrator.py; generando salida mínima…"
+            # Sin heredocs: generamos un script temporal y lo ejecutamos
             TMP=.tmp_orchestrator_fallback.py
             : > "$TMP"
             echo "from datetime import datetime" >> "$TMP"
@@ -60,7 +56,6 @@ jobs:
             echo "d.mkdir(parents=True, exist_ok=True)" >> "$TMP"
             echo "(d / 'README.md').write_text('# Output\\n\\nPrimer run automático.\\n', encoding='utf-8')" >> "$TMP"
             echo "print('Escribí:', d)" >> "$TMP"
-
             python "$TMP"
           fi
 
