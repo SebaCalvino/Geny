@@ -32,11 +32,11 @@ jobs:
 
       - name: Sanity check
         run: |
-          python - <<'PY'
+          python -c "
           from pathlib import Path
-          print("CWD:", Path.cwd())
-          print("Archivos en repo:", len(list(Path('.').rglob('*'))))
-PY
+          print('CWD:', Path.cwd())
+          print('Archivos en repo:', len(list(Path('.').rglob('*'))))
+          "
 
       - name: Run orchestrator (always create output + heartbeat)
         shell: bash
