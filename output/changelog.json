@@ -1,6 +1,12 @@
 [
   {
     "type": "note",
+    "title": "note_072312.md",
+    "path": "output/2025-09-15/note_072312.md",
+    "ts": "2025-09-15T07:23:12.828064"
+  },
+  {
+    "type": "note",
     "title": "note_063600.md",
     "path": "output/2025-09-15/note_063600.md",
     "ts": "2025-09-15T06:36:00.715371"
