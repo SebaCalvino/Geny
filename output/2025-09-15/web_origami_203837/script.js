@@ -1,0 +1,1 @@
+document.getElementById('cta')?.addEventListener('click',()=>{alert('¡Bienvenida/o a la colección!')})

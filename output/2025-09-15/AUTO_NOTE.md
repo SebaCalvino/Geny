@@ -1,5 +1,5 @@
 # Auto note
 
-Fecha: 2025-09-15T20:37:58.356337-03:00
+Fecha: 2025-09-15T20:38:37.881940-03:00
 
-Idea: game generado — Orb Catcher
+Idea: web generado — Estudio Origami
