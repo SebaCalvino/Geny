@@ -8,6 +8,7 @@
 - note_044517.md → `output/2025-09-15/note_044517.md`
 - note_052255.md → `output/2025-09-15/note_052255.md`
 - note_054154.md → `output/2025-09-15/note_054154.md`
+- note_063600.md → `output/2025-09-15/note_063600.md`
 
 ## 2025-09-14
 - note_161155.md → `output/2025-09-14/note_161155.md`
