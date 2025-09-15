@@ -1,82 +1,50 @@
-name: Maker Bot schedule
+name: Maker Bot (cron)
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # corre automáticamente cada 30 minutos (UTC)
-  workflow_dispatch:          # también podés correrlo a mano
+    - cron: "*/30 * * * *"  # corre cada 30 minutos
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write   # necesario para commit/push con GITHUB_TOKEN
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install deps
+      - name: Install deps (tolerante)
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+          # Pillow opcional para PNG; si falla, el orquestador cae a SVG
+          pip install pillow || true
 
-      - name: Sanity check
+      - name: Run orchestrator
         run: |
-          python -c "from pathlib import Path; import os; print('CWD:', Path.cwd()); print('Files:', len(list(Path('.').rglob('*'))))"
+          python orchestrator.py
 
-      - name: Run orchestrator (always create output + heartbeat)
-        shell: bash
+      - name: Commit & push changes (si los hay)
+        env:
+          TZ: America/Argentina/Buenos_Aires
         run: |
-          set -e
-          mkdir -p output
-          # heartbeat para mantener actividad del repo y que el cron no se “duerma”
-          date -u +"%Y-%m-%dT%H:%M:%SZ" >> output/heartbeat.txt
-
-          if [ -f orchestrator.py ]; then
-            echo "[orchestrator] ejecutando..."
-            python orchestrator.py
-          else
-            echo "[orchestrator] NO existe orchestrator.py; generando salida mínima…"
-            # Sin heredocs: generamos un script temporal y lo ejecutamos
-            TMP=.tmp_orchestrator_fallback.py
-            : > "$TMP"
-            echo "from datetime import datetime" >> "$TMP"
-            echo "from pathlib import Path" >> "$TMP"
-            echo "d = Path('output') / datetime.now().strftime('%Y-%m-%d')" >> "$TMP"
-            echo "d.mkdir(parents=True, exist_ok=True)" >> "$TMP"
-            echo "(d / 'README.md').write_text('# Output\\n\\nPrimer run automático.\\n', encoding='utf-8')" >> "$TMP"
-            echo "print('Escribí:', d)" >> "$TMP"
-            python "$TMP"
-          fi
-
-      - name: Mostrar cambios
-        run: |
-          echo "=== git status ==="
-          git status
-          echo "=== Archivos recientes en output/ ==="
-          ls -lah output || true
-          find output -maxdepth 2 -type f | sort | tail -n 50 || true
-
-      - name: Commit & push changes
-        run: |
-          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          if git diff --cached --quiet; then
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(bot): auto-run output update"
+            # protegerse de conflictos de cron concurrentes
+            git pull --rebase || true
+            git push
+          else
             echo "No hay cambios para commitear."
-            exit 0
           fi
-          git commit -m "chore: auto-output $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          git pull --rebase || true
-          git push
