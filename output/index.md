@@ -1,5 +1,8 @@
 # Maker Bot — Outputs
 
+## 2025-09-15
+- note_015251.md → `output/2025-09-15/note_015251.md`
+
 ## 2025-09-14
 - note_161155.md → `output/2025-09-14/note_161155.md`
 - note_164049.md → `output/2025-09-14/note_164049.md`
