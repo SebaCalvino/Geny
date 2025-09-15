@@ -5,6 +5,7 @@
 - note_031024.md → `output/2025-09-15/note_031024.md`
 - note_035234.md → `output/2025-09-15/note_035234.md`
 - note_042743.md → `output/2025-09-15/note_042743.md`
+- note_044517.md → `output/2025-09-15/note_044517.md`
 
 ## 2025-09-14
 - note_161155.md → `output/2025-09-14/note_161155.md`
