@@ -1,0 +1,34 @@
+{
+  "brand": {
+    "name": "Museo RetroTech",
+    "slogan": "El futuro de ayer",
+    "story": [
+      "Un archivo vivo de circuitos, cátodos y ruidos bonitos.",
+      "Curaduría de objetos que explican cómo llegamos aquí.",
+      "La nostalgia bien diseñada también es pedagogía."
+    ],
+    "sections": [
+      "Colección",
+      "Exhibiciones",
+      "Visitas"
+    ],
+    "theme": "museo",
+    "year": 2025,
+    "palette": {
+      "bg": "#ffffff",
+      "muted": "#f3f5f7",
+      "text": "#1b1f24",
+      "accent": "#6b6ffb",
+      "accent2": "#0ea5e9"
+    },
+    "brand_slug": "museo-retrotech"
+  },
+  "contact": {
+    "email": "hola@museo-retrotech.site",
+    "phone": "+54 9 11 2345 6789",
+    "address": "Av. Libertador 1234, CABA, Buenos Aires",
+    "instagram": "https://instagram.com/museo-retrotech",
+    "twitter": "https://x.com/museo-retrotech",
+    "facebook": "https://facebook.com/museo-retrotech"
+  }
+}
