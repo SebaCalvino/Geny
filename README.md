@@ -9,6 +9,8 @@ Its mission: keep creating while you’re away — a digital forge that never sl
 The name **Tektra** comes from the Greek word *téktōn* (τέκτων), meaning “craftsman” or “builder.”  
 It captures the project’s essence: an endless digital artisan forging creations with autonomy, diversity, and imagination.  
 
+**Creativity never sleeps, neither does Tektra.**
+
 ---
 
 ## ✨ Features
