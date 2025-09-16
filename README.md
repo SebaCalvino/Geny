@@ -6,9 +6,10 @@ All creations are automatically stored in `output/<date>/` with a clear index of
 Tektra can run via **GitHub Actions** (cron jobs) or on a **Flask server**, and provides endpoints to check the latest outputs.  
 Its mission: keep creating while you’re away — a digital forge that never sleeps.  
 
-Inspired by the Greek word *téktōn* (craftsman, builder), Tektra embodies the spirit of **automation, diversity, and infinite creativity**.  
+The name **Tektra** comes from the Greek word *téktōn* (τέκτων), meaning “craftsman” or “builder.”  
+It captures the project’s essence: an endless digital artisan forging creations with autonomy, diversity, and imagination.  
 
---- 
+---
 
 ## ✨ Features
 
@@ -48,7 +49,7 @@ Inspired by the Greek word *téktōn* (craftsman, builder), Tektra embodies the 
 - **Autonomy** → Tektra creates continuously without intervention.  
 - **Diversity** → Outputs span multiple formats for richness and surprise.  
 - **Accessibility** → Clear file structures and easy-to-explore outputs.  
-- **Creativity infinite** → Like a modern *téktōn*, Tektra forges endlessly.  
+- **Endless creativity** → Like a modern *téktōn*, Tektra never stops forging.  
 
 ---
 
@@ -60,29 +61,28 @@ git clone https://github.com/<your-username>/Tektra.git
 cd Tektra
 Create a virtual environment
 bash
-Copy code
+Copiar código
 python -m venv venv
 source venv/bin/activate   # On Linux/Mac
 venv\Scripts\activate      # On Windows
 Install dependencies
 bash
-Copy code
+Copiar código
 pip install -r requirements.txt
 ⚙️ Usage
 Local run with Flask
 bash
-Copy code
+Copiar código
 python app.py
 Then open http://localhost:5000 to check endpoints.
 
 With GitHub Actions
 A workflow file (.github/workflows/maker-bot.yml) triggers orchestrator.py periodically.
-
 Outputs are committed automatically to the repo under output/.
 
 📂 Output Structure
 pgsql
-Copy code
+Copiar código
 output/
   2025-09-15/
     img_galaxy_1234.png
@@ -110,19 +110,15 @@ Index → summary of daily creations.
 These can be integrated with Telegram bots or other clients.
 
 🤖 Roadmap
- Expand game library beyond 300 random concepts.
+Expand game library beyond 300 random concepts.
 
- Smarter prompt generation for more detailed images.
+Smarter prompt generation for more detailed images.
 
- Mobile-friendly interface with Telegram bot.
+Mobile-friendly interface with Telegram bot.
 
- Publish outputs via GitHub Pages.
+Publish outputs via GitHub Pages.
 
- Add cost control & daily limits with config.yaml.
-
-📜 Name Meaning
-Tektra comes from the Greek word téktōn (τέκτων) = craftsman, builder.
-It reflects the project’s core idea: a digital craftsman that autonomously forges new works.
+Add cost control & daily limits with config.yaml.
 
 🧑‍💻 Contributing
 Pull requests are welcome!
@@ -131,4 +127,3 @@ Ideas for new generators (games, image styles, website templates) are especially
 📄 License
 This project is licensed under the MIT License.
 See the LICENSE file for details.
-
