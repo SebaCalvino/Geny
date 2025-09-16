@@ -8,7 +8,7 @@ Its mission: keep creating while you’re away — a digital forge that never sl
 
 Inspired by the Greek word *téktōn* (craftsman, builder), Tektra embodies the spirit of **automation, diversity, and infinite creativity**.  
 
----
+--- 
 
 ## ✨ Features
 
