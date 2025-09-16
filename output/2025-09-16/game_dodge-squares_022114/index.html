@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Dodge Squares</title>
+<style>
+  html,body{margin:0;background:#0f1014;color:#e5e7eb;font-family:system-ui}
+  .wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px}
+  canvas{background:#111827;border:1px solid #ffffff22;border-radius:12px}
+  .hud{display:flex;gap:16px;align-items:center}
+  button{padding:8px 12px;border-radius:10px;border:0;background:#38bdf8;color:#111827;cursor:pointer}
+</style></head>
+<body>
+<div class="wrap">
+  <h1>Dodge Squares</h1>
+  <div class="hud"><div>Puntaje: <span id="score">0</span></div><button id="start">Reiniciar</button></div>
+  <canvas id="c" width="640" height="400"></canvas>
+  <small>Usá ← → para moverte. Evitá los cuadrados. Llega a 100 para ganar.</small>
+</div>
+<script>
+const cv = document.getElementById('c'), cx = cv.getContext('2d');
+let player = {x: 320, y: 360, w: 40, h: 20, vx:0};
+let obs = [], score = 0, running = true;
+function spawn() { obs.push({x: Math.random()*600+20, y:-20, s: 2+Math.random()*4}); }
+setInterval(spawn, 600);
+function loop() {
+  if(!running) return;
+  cx.clearRect(0,0,cv.width,cv.height);
+  player.x += player.vx;
+  player.x = Math.max(0, Math.min(cv.width-player.w, player.x));
+  cx.fillStyle = '#38bdf8'; cx.fillRect(player.x, player.y, player.w, player.h);
+  cx.fillStyle = '#ef4444';
+  for (let i=obs.length-1; i>=0; i--) {
+    const o = obs[i]; o.y += o.s; cx.fillRect(o.x, o.y, 14, 14);
+    if (o.y > cv.height+20) { obs.splice(i,1); score++; }
+    if (o.x < player.x+player.w && o.x+14 > player.x && o.y < player.y+player.h && o.y+14 > player.y) {
+      running = false; alert('Perdiste. Puntaje: '+score);
+    }
+  }
+  document.getElementById('score').textContent = score;
+  if (score >= 100) { running = false; alert('¡Ganaste!'); }
+  requestAnimationFrame(loop);
+}
+loop();
+addEventListener('keydown', e=>{ if(e.key==='ArrowLeft') player.vx=-6; if(e.key==='ArrowRight') player.vx=6; });
+addEventListener('keyup', e=>{ if(e.key==='ArrowLeft' || e.key==='ArrowRight') player.vx=0; });
+document.getElementById('start').onclick=()=>{ location.reload(); };
+</script>
+</body></html>
