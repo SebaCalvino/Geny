@@ -1,0 +1,34 @@
+{
+  "brand": {
+    "name": "Aurora & Oro",
+    "slogan": "El arte de capturar la luz",
+    "story": [
+      "Nacimos del brillo sutil de los metales nobles y del pulso de las manos artesanas.",
+      "Cada pieza narra un encuentro: tiempo, materia y emoción.",
+      "Diseñamos joyas para guardar instantes y volver a ellos cuando haga falta."
+    ],
+    "sections": [
+      "Colecciones",
+      "Taller",
+      "Piezas únicas"
+    ],
+    "theme": "joyeria",
+    "year": 2025,
+    "palette": {
+      "bg": "#ffffff",
+      "muted": "#f8fafc",
+      "text": "#0f172a",
+      "accent": "#8b5cf6",
+      "accent2": "#f59e0b"
+    },
+    "brand_slug": "aurora-oro"
+  },
+  "contact": {
+    "email": "hola@aurora-oro.site",
+    "phone": "+54 9 11 2345 6789",
+    "address": "Av. Libertador 1234, CABA, Buenos Aires",
+    "instagram": "https://instagram.com/aurora-oro",
+    "twitter": "https://x.com/aurora-oro",
+    "facebook": "https://facebook.com/aurora-oro"
+  }
+}
