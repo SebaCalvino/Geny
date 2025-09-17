@@ -1,693 +1,481 @@
-import os
-import sys
-import json
-import random
-import shutil
-import datetime as dt
+# -*- coding: utf-8 -*-
+"""
+Factory de mini-webs — OVERHAUL (paletas + historia + 4 páginas + metadata)
+"""
+from __future__ import annotations
+from dataclasses import dataclass
 from pathlib import Path
+from textwrap import dedent
+import json, random, re, datetime as dt
 
-# ===================================
-# Paths & Config base
-# ===================================
-ROOT = Path(__file__).parent.resolve()
-OUTPUT = ROOT / "output"
-CONFIG = ROOT / "config.yaml"
-TZ = dt.timezone(dt.timedelta(hours=-3))  # UTC-3
+PALETTES = [
+    {"bg":"#0f0f12","fg":"#e8e8ec","acc1":"#7c3aed","acc2":"#22d3ee"},
+    {"bg":"#0b132b","fg":"#eaeaea","acc1":"#6fffe9","acc2":"#ffd166"},
+    {"bg":"#111827","fg":"#f3f4f6","acc1":"#f59e0b","acc2":"#10b981"},
+    {"bg":"#121212","fg":"#fafafa","acc1":"#9b5de5","acc2":"#f15bb5"},
+]
 
-def now_str():
-    return dt.datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S")
+def slugify(s: str) -> str:
+    s = re.sub(r"[^\w\s-]", "", s, flags=re.U)
+    s = re.sub(r"[\s_-]+", "-", s.strip().lower(), flags=re.U)
+    return s
 
-def today_slug():
-    return dt.datetime.now(TZ).strftime("%Y-%m-%d")
+def pick_palette(index_hint: int | None, seed: int) -> tuple[dict, int]:
+    if index_hint is not None:
+        i = int(index_hint) % len(PALETTES)
+        return PALETTES[i], i
+    random.seed(seed); i = random.randint(0, len(PALETTES)-1)
+    return PALETTES[i], i
 
-def ensure_dir(p: Path):
-    p.mkdir(parents=True, exist_ok=True)
+def now_iso() -> str:
+    return dt.datetime.now().replace(microsecond=0).isoformat()
 
-def write_text(path: Path, content: str):
-    ensure_dir(path.parent)
-    path.write_text(content, encoding="utf-8")
+@dataclass
+class CompanyData:
+    name: str
+    address: str
+    phone: str
+    email: str
+    hours: str
+    social: dict
 
-def write_json(path: Path, data: dict):
-    ensure_dir(path.parent)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+def fake_company(brand: str, city: str = "CABA", country: str = "Argentina") -> CompanyData:
+    slug = slugify(brand)
+    return CompanyData(
+        name=f"{brand} S.A.S.",
+        address=f"Av. Corrientes 2345, {city}, {country}",
+        phone="+54 9 11 2345-6789",
+        email=f"hola@{slug}.com",
+        hours="Lun–Vie 9:00–18:00",
+        social={
+            "instagram": f"https://instagram.com/{slug}",
+            "twitter": f"https://x.com/{slug}",
+            "linkedin": f"https://linkedin.com/company/{slug}"
+        }
+    )
 
-def safe_slug(text: str):
-    out = "".join(c.lower() if c.isalnum() else "-" for c in text).strip("-")
-    while "--" in out:
-        out = out.replace("--", "-")
-    return out[:60] or "item"
-
-def load_config():
-    cfg = {
-        "max_items_per_day": 6,
-        "daily_budget_usd": 0,
-        "weights": {"image": 0.4, "web": 0.4, "game": 0.2}
-    }
-    try:
-        import yaml
-        if CONFIG.exists():
-            with open(CONFIG, "r", encoding="utf-8") as f:
-                user_cfg = yaml.safe_load(f) or {}
-                for k, v in user_cfg.items():
-                    cfg[k] = v
-    except Exception:
-        pass
-    w = cfg["weights"]
-    s = sum(w.values())
-    if s <= 0:
-        cfg["weights"] = {"image": 0.4, "web": 0.4, "game": 0.2}
-    else:
-        for k in list(w.keys()):
-            w[k] = w[k] / s
-    return cfg
-
-def count_today_items(day_dir: Path):
-    if not day_dir.exists():
-        return 0
-    n = 0
-    for child in day_dir.iterdir():
-        if child.is_dir() and child.name.startswith(("img_", "web_", "game_")):
-            n += 1
-    return n
-
-def add_to_daily_changelog(day_dir: Path, line: str):
-    cl = day_dir / "CHANGELOG.txt"
-    prev = cl.read_text(encoding="utf-8") if cl.exists() else ""
-    write_text(cl, (prev + line + "\n").strip() + "\n")
-
-def update_root_index():
-    lines = ["# Maker-Bot — Índice de salidas\n"]
-    days = sorted([p for p in OUTPUT.iterdir() if p.is_dir()], reverse=True) if OUTPUT.exists() else []
-    shown = 0
-    for d in days:
-        if shown >= 5:
-            break
-        cl = d / "CHANGELOG.txt"
-        if not cl.exists():
-            continue
-        lines.append(f"## {d.name}")
-        for li in reversed(cl.read_text(encoding='utf-8').splitlines()[-5:]):
-            lines.append(f"- {li}")
-            shown += 1
-            if shown >= 5:
-                break
-    write_text(ROOT / "INDEX.md", "\n".join(lines) + "\n")
-
-def write_auto_note(day_dir: Path, idea: str):
-    note = f"# Auto note\n\nFecha: {dt.datetime.now(TZ).isoformat()}\n\nIdea: {idea}\n"
-    write_text(day_dir / "AUTO_NOTE.md", note)
-
-# ===================================
-# BRAND & ASSETS HELPERS (nuevo)
-# ===================================
-def choose_theme():
-    return random.choice([
-        "joyeria", "viajes", "starwars", "cafe", "museo", "origami",
-        "bookstore", "fitness", "cyberpunk", "estudio-foto"
-    ])
-
-def choose_palette(theme):
-    bank = [
-        {"bg":"#ffffff","muted":"#f3f5f7","text":"#1b1f24","accent":"#6b6ffb","accent2":"#0ea5e9"},
-        {"bg":"#ffffff","muted":"#f6f7fb","text":"#0f172a","accent":"#a78bfa","accent2":"#6366f1"},
-        {"bg":"#ffffff","muted":"#f7f7f2","text":"#1f2937","accent":"#10b981","accent2":"#34d399"},
-        {"bg":"#ffffff","muted":"#f6f3f0","text":"#111827","accent":"#f59e0b","accent2":"#ef4444"},
-        {"bg":"#ffffff","muted":"#eff6ff","text":"#0b1020","accent":"#38bdf8","accent2":"#22d3ee"},
-    ]
-    if theme in ("cyberpunk", "starwars"):
-        return {"bg":"#ffffff","muted":"#eef2ff","text":"#0b1020","accent":"#7c3aed","accent2":"#06b6d4"}
-    if theme in ("joyeria",):
-        return {"bg":"#ffffff","muted":"#f8fafc","text":"#0f172a","accent":"#8b5cf6","accent2":"#f59e0b"}
-    return random.choice(bank)
-
-def themed_brand(theme):
-    year = dt.datetime.now(TZ).year
-    presets = {
-        "joyeria": {
-            "name": random.choice(["Étoile", "Aurora & Oro", "Luz de Plata", "Catedral"]),
-            "slogan": "El arte de capturar la luz",
-            "story": [
-                "Nacimos del brillo sutil de los metales nobles y del pulso de las manos artesanas.",
-                "Cada pieza narra un encuentro: tiempo, materia y emoción.",
-                "Diseñamos joyas para guardar instantes y volver a ellos cuando haga falta."
-            ],
-            "sections": ["Colecciones", "Taller", "Piezas únicas"],
-        },
-        "viajes": {
-            "name": random.choice(["Nova Travels", "Ruta Azul", "Atlas & Cielos", "Horizonte"]),
-            "slogan": "Historias que empiezan con un pasaje",
-            "story": [
-                "Creemos que viajar es la forma más honesta de aprender.",
-                "Trazamos itinerarios con ritmo humano, con silencios y sorpresas.",
-                "Tu próximo recuerdo inolvidable espera en la primera escala."
-            ],
-            "sections": ["Destinos", "Experiencias", "Guías"]
-        },
-        "starwars": {
-            "name": random.choice(["KyberTech", "Outer Rim Tours", "Binary Suns", "Lothal Works"]),
-            "slogan": "Una galaxia, muchas historias",
-            "story": [
-                "Exploramos mundos lejanos donde la tecnología y el mito conviven.",
-                "Prototipamos artefactos imposibles y contamos relatos del hiperespacio.",
-                "Que la estética te acompañe."
-            ],
-            "sections": ["Holocron", "Droid Lab", "Hiperespacio"]
-        },
-        "cafe": {
-            "name": random.choice(["Café Galáctico", "Petricor", "Faro & Bruma", "Kahvé"]),
-            "slogan": "Tazas que cuentan historias",
-            "story": [
-                "Tostamos micro-lotes con paciencia y obsesión por el detalle.",
-                "Cada grano trae un paisaje, un clima y una comunidad.",
-                "Servimos café y conversaciones memorables."
-            ],
-            "sections": ["Carta", "Tostaduría", "Historias"]
-        },
-        "museo": {
-            "name": "Museo RetroTech",
-            "slogan": "El futuro de ayer",
-            "story": [
-                "Un archivo vivo de circuitos, cátodos y ruidos bonitos.",
-                "Curaduría de objetos que explican cómo llegamos aquí.",
-                "La nostalgia bien diseñada también es pedagogía."
-            ],
-            "sections": ["Colección", "Exhibiciones", "Visitas"]
-        },
-        "origami": {
-            "name": "Estudio Origami",
-            "slogan": "Papel, paciencia y aire",
-            "story": [
-                "Doblamos historias hasta volverlas figuras que respiran.",
-                "El papel es tiempo visible: cada pliegue es una decisión.",
-                "Creamos piezas ligeras como una buena idea."
-            ],
-            "sections": ["Galería", "Talleres", "Encargos"]
-        },
-        "bookstore": {
-            "name": "Babel Íntima",
-            "slogan": "Librería de conversaciones interminables",
-            "story": [
-                "Una selección breve y feroz de textos relectibles.",
-                "Leemos para encontrar metáforas eficientes.",
-                "Pasa, hojea, quédate."
-            ],
-            "sections": ["Catálogo", "Recomendados", "Club"]
-        },
-        "fitness": {
-            "name": "Kinesis Lab",
-            "slogan": "Movimiento con propósito",
-            "story": [
-                "Entrenamos sin dogmas: ciencia, progreso y disfrute.",
-                "Programas que se adaptan al cuerpo real, no al ideal.",
-                "Tu mejor hábito empieza hoy."
-            ],
-            "sections": ["Planes", "Equipo", "Progreso"]
-        },
-        "cyberpunk": {
-            "name": "Neón & Lluvia",
-            "slogan": "Interfaces con estética de tormenta",
-            "story": [
-                "Diseñamos sistemas con alma de neón: claros en la noche.",
-                "Hackería elegante, sin ruido innecesario.",
-                "Software que te mira a los ojos."
-            ],
-            "sections": ["Proyectos", "Laboratorio", "Clientes"]
-        },
-        "estudio-foto": {
-            "name": "Luz Errante",
-            "slogan": "Retratos que recuerdan",
-            "story": [
-                "Nos obsesionan los silencios entre disparos.",
-                "Hacemos retratos que envejecen con dignidad.",
-                "La luz es nuestra lengua."
-            ],
-            "sections": ["Portfolio", "Sesiones", "Reserva"]
-        },
-    }
-    data = presets.get(theme, presets["joyeria"])
-    palette = choose_palette(theme)
-    data.update({
-        "theme": theme,
-        "year": year,
-        "palette": palette,
-        "brand_slug": safe_slug(data["name"])
-    })
-    return data
-
-def mk_logo_svg(brand, palette):
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="200" height="60">
-  <defs>
-    <linearGradient id="g" x1="0" x2="1">
-      <stop offset="0%" stop-color="{palette['accent']}"/>
-      <stop offset="100%" stop-color="{palette['accent2']}"/>
-    </linearGradient>
-  </defs>
-  <circle cx="30" cy="30" r="18" fill="url(#g)"/>
-  <rect x="24" y="14" width="12" height="32" rx="3" fill="#ffffff55"/>
-  <text x="60" y="38" font-family="Poppins, Arial, sans-serif" font-weight="700" font-size="24" fill="{palette['text']}">{brand}</text>
-</svg>'''
-
-def make_asset_image(path: Path, size=(1200, 700), palette=None, label=""):
-    ensure_dir(path.parent)
-    palette = palette or {"bg":"#fff","muted":"#f3f5f7","accent":"#6b6ffb","accent2":"#0ea5e9","text":"#111"}
-    try:
-        from PIL import Image, ImageDraw, ImageFont
-        w, h = size
-        img = Image.new("RGB", size, (255, 255, 255))
-        draw = ImageDraw.Draw(img)
-        # Fondo
-        def hex_to_rgb(hx):
-            return tuple(int(hx.lstrip("#")[i:i+2], 16) for i in (0,2,4))
-        draw.rectangle([0,0,w,h], fill=hex_to_rgb(palette["muted"]))
-        # Diagonal
-        draw.polygon([(0,int(h*0.6)), (int(w*0.55),0), (w,0), (w,int(h*0.4))], fill=hex_to_rgb(palette["accent"]))
-        # Círculo
-        draw.ellipse([w-240,40,w-40,240], fill=hex_to_rgb(palette["accent2"]))
-        # Label
-        try:
-            font = ImageFont.truetype("DejaVuSans.ttf", 42)
-        except Exception:
-            font = ImageFont.load_default()
-        tw, th = draw.textsize(label, font=font)
-        draw.text(((w-tw)//2,(h-th)//2), label, fill=hex_to_rgb(palette["text"]), font=font)
-        img.save(path)
-    except Exception:
-        svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="{size[0]}" height="{size[1]}">
-  <rect width="100%" height="100%" fill="{palette['muted']}"/>
-  <polygon points="0,{int(size[1]*0.6)} {int(size[0]*0.55)},0 {size[0]},0 {size[0]},{int(size[1]*0.4)}" fill="{palette['accent']}"/>
-  <circle cx="{size[0]-140}" cy="140" r="100" fill="{palette['accent2']}"/>
-  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
-        font-family="Poppins, Arial, sans-serif" font-size="42" fill="{palette['text']}">{label}</text>
-</svg>'''
-        write_text(path, svg)
-
-# ===================================
-# Generadores
-# ===================================
-def gen_epic_image(day_dir: Path):
-    title = random.choice([
-        "Nebulosa de Titanio", "Ciudad Cromo", "Catedral de Fotones",
-        "Mareas Estelares", "Dunas Cuánticas"
-    ])
-    prompt = f"épicas imágenes | tema: {title}"
-    slug = f"img_{safe_slug(title)}_{dt.datetime.now(TZ).strftime('%H%M%S')}"
-    item_dir = day_dir / slug
-    ensure_dir(item_dir)
-
-    meta = {
-        "type": "image",
-        "title": title,
-        "prompt": prompt,
-        "seed": random.randint(0, 10_000_000),
-        "created_at": now_str()
-    }
-    write_json(item_dir / "metadata.json", meta)
-
-    try:
-        from PIL import Image, ImageDraw, ImageFont
-        w, h = 1280, 720
-        img = Image.new("RGB", (w, h), (15, 16, 20))
-        draw = ImageDraw.Draw(img)
-        for r in range(0, max(w, h), 6):
-            c = 15 + int(220 * (r/max(w, h)))
-            draw.ellipse([(w//2 - r, h//2 - r), (w//2 + r, h//2 + r)], outline=(c, 30, 100))
-        try:
-            font = ImageFont.truetype("DejaVuSans-Bold.ttf", 64)
-        except Exception:
-            font = ImageFont.load_default()
-        text = title
-        tw, th = draw.textsize(text, font=font)
-        draw.rectangle([(40, h-120), (40+tw+40, h-40)], fill=(0, 0, 0, 180))
-        draw.text((60, h-110), text, fill=(240, 240, 255), font=font)
-        img.save(item_dir / f"{slug}.png")
-        preview = f"{slug}.png"
-    except Exception:
-        svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0f1014"/>
-      <stop offset="100%" stop-color="#502a9e"/>
-    </linearGradient>
-  </defs>
-  <rect width="100%" height="100%" fill="url(#g)"/>
-  <circle cx="980" cy="140" r="220" fill="#ffffff10"/>
-  <text x="60" y="660" font-size="64" font-family="Verdana" fill="#eaeaff">{title}</text>
-</svg>"""
-        write_text(item_dir / f"{slug}.svg", svg)
-        preview = f"{slug}.svg"
-
-    note = f"# Auto note\n\nFecha: {dt.datetime.now(TZ).isoformat()}\n\nIdea: {prompt}\n"
-    write_text(item_dir / "NOTE.md", note)
-    write_text(item_dir / "README.md", f"# {title}\n\nPreview: `{preview}`\n\nPrompt: {prompt}\n")
-    add_to_daily_changelog(day_dir, f"IMAGE  — {title}  → {item_dir.relative_to(ROOT)}")
-    return {"type": "image", "title": title, "path": str(item_dir.relative_to(ROOT))}
-
-def gen_mini_web(day_dir: Path):
-    theme = choose_theme()
-    brand = themed_brand(theme)
-    title = brand["name"]
-    slug = f"web_{safe_slug(title)}_{dt.datetime.now(TZ).strftime('%H%M%S')}"
-    item_dir = day_dir / slug
-    assets = item_dir / "assets"
-    ensure_dir(assets)
-
-    # Assets: logo + imágenes
-    write_text(assets / "logo.svg", mk_logo_svg(brand["name"], brand["palette"]))
-    make_asset_image(assets / "hero.png",  (1440, 720), brand["palette"], label=brand["slogan"])
-    make_asset_image(assets / "card1.png", (800,  560), brand["palette"], label=brand["sections"][0])
-    make_asset_image(assets / "card2.png", (800,  560), brand["palette"], label=brand["sections"][1])
-    make_asset_image(assets / "card3.png", (800,  560), brand["palette"], label=brand["sections"][2])
-
-    contact = {
-        "email": f"hola@{brand['brand_slug']}.site",
-        "phone": "+54 9 11 2345 6789",
-        "address": "Av. Libertador 1234, CABA, Buenos Aires",
-        "instagram": f"https://instagram.com/{brand['brand_slug']}",
-        "twitter":   f"https://x.com/{brand['brand_slug']}",
-        "facebook":  f"https://facebook.com/{brand['brand_slug']}",
-    }
-
-    css = f""":root{{
-  --bg: {brand['palette']['bg']};
-  --muted: {brand['palette']['muted']};
-  --text: {brand['palette']['text']};
-  --accent: {brand['palette']['accent']};
-  --accent2: {brand['palette']['accent2']};
-}}
-*{{box-sizing:border-box}}html,body{{margin:0;padding:0;background:var(--bg);color:var(--text);}}
-body{{font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif; line-height:1.6}}
-.container{{max-width:1160px;margin:0 auto;padding:24px}}
-header.nav{{background:var(--muted);border-bottom:1px solid #e5e7eb}}
-header.nav .wrap{{display:flex;align-items:center;gap:24px;justify-content:space-between}}
-nav a{{text-decoration:none;color:var(--text);margin-left:16px;opacity:.85}}
-nav a:hover{{color:var(--accent)}}
-.hero{{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:center;padding:48px 0;border-bottom:1px solid #eee}}
-.hero h1{{font-size:48px;line-height:1.1;margin:0}}
-.hero p.lead{{font-size:18px;opacity:.9}}
-.btn{{display:inline-block;background:var(--accent);color:#fff;padding:12px 18px;border-radius:12px;text-decoration:none}}
-.btn:hover{{filter:brightness(1.05)}}
-.grid-3{{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}}
-.card{{background:var(--muted);border:1px solid #eef2f7;border-radius:16px;overflow:hidden}}
-.card img{{width:100%;height:auto;display:block}}
-.card .pad{{padding:16px}}
-.section{{padding:56px 0}}
-.section h2{{margin-top:0;font-size:28px}}
-.footer{{background:var(--muted);border-top:1px solid #e5e7eb;margin-top:56px}}
-.footer .cols{{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}}
-.small{{font-size:14px;opacity:.8}}
-.badge{{background:var(--accent2);color:#fff;padding:4px 10px;border-radius:999px;font-size:12px}}
-hr.sep{{border:0;height:1px;background:#eceff3;margin:32px 0}}
-"""
-
-    head_common = f"""<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>{title} — {brand['slogan']}</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css"/>"""
-
-    header_html = f"""<header class="nav">
-  <div class="container wrap">
-    <div style="display:flex;gap:12px;align-items:center">
-      <img src="assets/logo.svg" alt="{title}" width="120" height="36"/>
-    </div>
-    <nav>
-      <a href="index.html">Inicio</a>
-      <a href="galeria.html">{brand['sections'][0]}</a>
-      <a href="productos.html">{brand['sections'][1]}</a>
-      <a href="contacto.html">Contacto</a>
-    </nav>
-  </div>
-</header>"""
-
-    footer_html = f"""<footer class="footer">
-  <div class="container">
-    <div class="cols">
-      <div>
-        <h3>Enlaces</h3>
-        <div class="small">
-          <div><a href="index.html">Inicio</a></div>
-          <div><a href="galeria.html">{brand['sections'][0]}</a></div>
-          <div><a href="productos.html">{brand['sections'][1]}</a></div>
-          <div><a href="contacto.html">Contacto</a></div>
-        </div>
-      </div>
-      <div>
-        <h3>Redes Sociales</h3>
-        <div class="small">
-          <div><a href="{contact['instagram']}">Instagram</a></div>
-          <div><a href="{contact['facebook']}">Facebook</a></div>
-          <div><a href="{contact['twitter']}">X / Twitter</a></div>
-        </div>
-      </div>
-      <div>
-        <h3>Contacto</h3>
-        <div class="small">
-          <div>{contact['email']}</div>
-          <div>{contact['phone']}</div>
-          <div>{contact['address']}</div>
-        </div>
-      </div>
-    </div>
-    <hr class="sep"/>
-    <div class="small">© {brand['year']} {title} — Hecho por Maker-Bot</div>
-  </div>
-</footer>"""
-
-    index_html = f"""<!doctype html>
-<html lang="es"><head>{head_common}</head>
-<body>
-{header_html}
-<main class="container">
-  <section class="hero">
-    <div>
-      <span class="badge">{brand['slogan']}</span>
-      <h1>{title}</h1>
-      <p class="lead">{brand['story'][0]}</p>
-      <p>{brand['story'][1]}</p>
-      <a class="btn" href="productos.html">Ver más</a>
-    </div>
-    <div>
-      <img src="assets/hero.png" alt="Hero {title}" />
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>{brand['sections'][0]}</h2>
-    <div class="grid-3">
-      <div class="card">
-        <img src="assets/card1.png" alt="{brand['sections'][0]} 1"/>
-        <div class="pad">
-          <h3>{brand['sections'][0]} — A</h3>
-          <p>{brand['story'][2]}</p>
-        </div>
-      </div>
-      <div class="card">
-        <img src="assets/card2.png" alt="{brand['sections'][1]} 1"/>
-        <div class="pad">
-          <h3>{brand['sections'][1]} — B</h3>
-          <p>Pequeñas decisiones que construyen identidad.</p>
-        </div>
-      </div>
-      <div class="card">
-        <img src="assets/card3.png" alt="{brand['sections'][2]} 1"/>
-        <div class="pad">
-          <h3>{brand['sections'][2]} — C</h3>
-          <p>Diseños que cuentan y no gritan.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-{footer_html}
-</body></html>
-"""
-
-    galeria_html = f"""<!doctype html>
-<html lang="es"><head>{head_common}</head>
-<body>
-{header_html}
-<main class="container">
-  <section class="section">
-    <h2>{brand['sections'][0]}</h2>
-    <p class="small">Una selección curada con la misma paciencia con la que se hace lo que ves.</p>
-    <div class="grid-3">
-      <div class="card"><img src="assets/card1.png" alt="galeria 1"><div class="pad"><strong>Serie I</strong><p>{brand['story'][1]}</p></div></div>
-      <div class="card"><img src="assets/card2.png" alt="galeria 2"><div class="pad"><strong>Serie II</strong><p>Texturas que invitan a tocar.</p></div></div>
-      <div class="card"><img src="assets/card3.png" alt="galeria 3"><div class="pad"><strong>Serie III</strong><p>Una coreografía de luz y forma.</p></div></div>
-    </div>
-  </section>
-</main>
-{footer_html}
-</body></html>
-"""
-
-    productos_html = f"""<!doctype html>
-<html lang="es"><head>{head_common}</head>
-<body>
-{header_html}
-<main class="container">
-  <section class="section">
-    <h2>{brand['sections'][1]}</h2>
-    <p>Lo que hacemos cuando tenemos un buen día de trabajo.</p>
-    <div class="grid-3">
-      <div class="card"><img src="assets/card1.png" alt="p1"><div class="pad"><h3>Opción A</h3><p>{brand['story'][0]}</p><a class="btn" href="contacto.html">Consultar</a></div></div>
-      <div class="card"><img src="assets/card2.png" alt="p2"><div class="pad"><h3>Opción B</h3><p>{brand['story'][2]}</p><a class="btn" href="contacto.html">Reservar</a></div></div>
-      <div class="card"><img src="assets/card3.png" alt="p3"><div class="pad"><h3>Opción C</h3><p>Ediciones limitadas. Amor por el detalle.</p><a class="btn" href="contacto.html">Saber más</a></div></div>
-    </div>
-  </section>
-</main>
-{footer_html}
-</body></html>
-"""
-
-    contacto_html = f"""<!doctype html>
-<html lang="es"><head>{head_common}</head>
-<body>
-{header_html}
-<main class="container">
-  <section class="section">
-    <h2>Contacto</h2>
-    <p class="small">Escribinos, contanos tu idea y construyamos algo con sentido.</p>
-    <div class="grid-3">
-      <div class="card"><div class="pad"><h3>Email</h3><p>{contact['email']}</p></div></div>
-      <div class="card"><div class="pad"><h3>Teléfono</h3><p>{contact['phone']}</p></div></div>
-      <div class="card"><div class="pad"><h3>Dirección</h3><p>{contact['address']}</p></div></div>
-    </div>
-    <hr class="sep"/>
-    <form class="card" style="max-width:680px">
-      <div class="pad">
-        <label>Nombre<br/><input style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:10px"/></label><br/><br/>
-        <label>Mensaje<br/><textarea rows="6" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:10px"></textarea></label><br/><br/>
-        <button class="btn" type="button">Enviar</button>
-      </div>
-    </form>
-  </section>
-</main>
-{footer_html}
-</body></html>
-"""
-
-    write_text(item_dir / "styles.css", css)
-    write_text(item_dir / "index.html", index_html)
-    write_text(item_dir / "galeria.html", galeria_html)
-    write_text(item_dir / "productos.html", productos_html)
-    write_text(item_dir / "contacto.html", contacto_html)
-
-    readme_md = f"""# {title}
-
-**Slogan:** {brand['slogan']}
-
-## Historia
-- {brand['story'][0]}
-- {brand['story'][1]}
-- {brand['story'][2]}
-
-## Paleta
-- bg: {brand['palette']['bg']}
-- muted: {brand['palette']['muted']}
-- text: {brand['palette']['text']}
-- accent: {brand['palette']['accent']}
-- accent2: {brand['palette']['accent2']}
-"""
-    write_text(item_dir / "README.md", readme_md)
-    write_json(item_dir / "brand.json", {"brand": brand, "contact": contact})
-
-    add_to_daily_changelog(day_dir, f"WEB    — {title}  → {item_dir.relative_to(ROOT)}")
-    return {"type": "web", "title": title, "path": str(item_dir.relative_to(ROOT))}
-
-def gen_game(day_dir: Path):
-    title = random.choice(["Dodge Squares", "Photon Runner", "Orb Catcher"])
-    slug = f"game_{safe_slug(title)}_{dt.datetime.now(TZ).strftime('%H%M%S')}"
-    item_dir = day_dir / slug
-    ensure_dir(item_dir)
-
-    game_html = f"""<!doctype html>
-<html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>{title}</title>
-<style>
-  html,body{{margin:0;background:#0f1014;color:#e5e7eb;font-family:system-ui}}
-  .wrap{{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px}}
-  canvas{{background:#111827;border:1px solid #ffffff22;border-radius:12px}}
-  .hud{{display:flex;gap:16px;align-items:center}}
-  button{{padding:8px 12px;border-radius:10px;border:0;background:#38bdf8;color:#111827;cursor:pointer}}
-</style></head>
-<body>
-<div class="wrap">
-  <h1>{title}</h1>
-  <div class="hud"><div>Puntaje: <span id="score">0</span></div><button id="start">Reiniciar</button></div>
-  <canvas id="c" width="640" height="400"></canvas>
-  <small>Usá ← → para moverte. Evitá los cuadrados. Llega a 100 para ganar.</small>
-</div>
-<script>
-const cv = document.getElementById('c'), cx = cv.getContext('2d');
-let player = {{x: 320, y: 360, w: 40, h: 20, vx:0}};
-let obs = [], score = 0, running = true;
-function spawn() {{ obs.push({{x: Math.random()*600+20, y:-20, s: 2+Math.random()*4}}); }}
-setInterval(spawn, 600);
-function loop() {{
-  if(!running) return;
-  cx.clearRect(0,0,cv.width,cv.height);
-  player.x += player.vx;
-  player.x = Math.max(0, Math.min(cv.width-player.w, player.x));
-  cx.fillStyle = '#38bdf8'; cx.fillRect(player.x, player.y, player.w, player.h);
-  cx.fillStyle = '#ef4444';
-  for (let i=obs.length-1; i>=0; i--) {{
-    const o = obs[i]; o.y += o.s; cx.fillRect(o.x, o.y, 14, 14);
-    if (o.y > cv.height+20) {{ obs.splice(i,1); score++; }}
-    if (o.x < player.x+player.w && o.x+14 > player.x && o.y < player.y+player.h && o.y+14 > player.y) {{
-      running = false; alert('Perdiste. Puntaje: '+score);
+def tpl_styles(palette: dict) -> str:
+    return dedent(f"""\
+    :root {{
+      --bg:{palette['bg']}; --fg:{palette['fg']};
+      --acc1:{palette['acc1']}; --acc2:{palette['acc2']};
+      --muted:#9aa0a6; --card:color-mix(in oklab, var(--bg), white 6%);
+      --border:color-mix(in oklab, var(--bg), white 14%); --radius:14px;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
     }}
-  }}
-  document.getElementById('score').textContent = score;
-  if (score >= 100) {{ running = false; alert('¡Ganaste!'); }}
-  requestAnimationFrame(loop);
-}}
-loop();
-addEventListener('keydown', e=>{{ if(e.key==='ArrowLeft') player.vx=-6; if(e.key==='ArrowRight') player.vx=6; }});
-addEventListener('keyup', e=>{{ if(e.key==='ArrowLeft' || e.key==='ArrowRight') player.vx=0; }});
-document.getElementById('start').onclick=()=>{{ location.reload(); }};
-</script>
-</body></html>"""
-    write_text(item_dir / "index.html", game_html)
-    add_to_daily_changelog(day_dir, f"GAME   — {title}  → {item_dir.relative_to(ROOT)}")
-    return {"type": "game", "title": title, "path": str(item_dir.relative_to(ROOT))}
+    *{{box-sizing:border-box}} html,body{{height:100%}}
+    body{{
+      margin:0;color:var(--fg);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--acc1), transparent 82%), transparent 60%),
+        radial-gradient(800px 400px at 100% 0%, color-mix(in oklab, var(--acc2), transparent 88%), transparent 55%),
+        linear-gradient(180deg, var(--bg) 0%, color-mix(in oklab, var(--bg), black 8%) 100%);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial; line-height:1.6;
+    }}
+    a{color:var(--acc2);text-decoration:none} a:hover{color:var(--acc1)}
+    :focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+    .container{width:min(1100px,92%);margin:0 auto}
+    .site-header{position:sticky;top:0;z-index:40;backdrop-filter:blur(8px);background:color-mix(in oklab,var(--bg),transparent 40%);border-bottom:1px solid var(--border)}
+    .nav-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+    .brand{display:flex;align-items:center;gap:12px;color:var(--fg);font-weight:700}
+    .brandmark{width:28px;height:28px;color:var(--acc2)}
+    .main-nav a{margin-left:18px;padding:8px 10px;border-radius:10px;color:var(--fg)}
+    .main-nav a.active,.main-nav a:hover{background:var(--card);border:1px solid var(--border)}
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;padding:40px 0 28px;align-items:center}
+    .hero-text h1{font-size:clamp(28px,4vw,48px);line-height:1.1}
+    .hero-text p{max-width:58ch}
+    .hero-media img.hero-img{width:100%;height:auto;border-radius:var(--radius);box-shadow:var(--shadow)}
+    .cta-row{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+    .btn{display:inline-block;padding:10px 16px;border-radius:12px;font-weight:600;border:1px solid var(--border);transition:transform .06s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--acc1);color:#fff;border-color:color-mix(in oklab,var(--acc1),black 10%)}
+    .btn-primary:hover{background:color-mix(in oklab,var(--acc1),white 10%)}
+    .btn-ghost{background:transparent;color:var(--fg)}
+    .btn-secondary{background:var(--card);color:var(--fg)}
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:22px 0}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+    .card .icon svg{width:24px;height:24px;color:var(--acc2)}
+    .showcase{display:grid;gap:16px;padding:22px 0}
+    .showcase-item{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center}
+    .showcase img{width:100%;height:auto;border-radius:var(--radius)}
+    .page h1,.page h2{letter-spacing:-.01em}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .company{line-height:1.8}
+    .card-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .gallery{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+    .form label{display:grid;gap:6px;margin-bottom:10px}
+    input,select,textarea{background:#0e0e13;color:var(--fg);border:1px solid var(--border);border-radius:10px;padding:10px}
+    input:focus,select:focus,textarea:focus{outline:2px solid var(--acc2)}
+    .site-footer{margin-top:40px;border-top:1px solid var(--border);background:color-mix(in oklab,var(--bg),transparent 30%)}
+    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;padding:16px 0}
+    .copyright{padding:14px 0;color:var(--muted)}
+    @media (max-width:900px){
+      .hero{grid-template-columns:1fr}
+      .features{grid-template-columns:1fr}
+      .grid-2{grid-template-columns:1fr}
+      .card-grid{grid-template-columns:1fr 1fr}
+      .footer-grid{grid-template-columns:1fr}
+    }
+    @media (max-width:520px){.card-grid{grid-template-columns:1fr}}
+    """)
 
-# ===================================
-# Main
-# ===================================
-def main():
-    cfg = load_config()
-    day_dir = OUTPUT / today_slug()
-    ensure_dir(day_dir)
+def brandmark_svg() -> str:
+    return """\
+<!-- brandmark.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="currentColor" stop-opacity=".95"/>
+      <stop offset="1" stop-color="currentColor" stop-opacity=".55"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="16" fill="url(#g)"/>
+  <ellipse cx="32" cy="36" rx="24" ry="10" fill="none" stroke="currentColor" stroke-width="2"/>
+</svg>
+"""
 
-    made = count_today_items(day_dir)
-    if made >= cfg["max_items_per_day"]:
-        write_auto_note(day_dir, "Límite diario alcanzado")
-        update_root_index()
-        print("Límite diario alcanzado. Nada que hacer.")
-        return
+def tpl_header(brand: str) -> str:
+    return dedent(f"""\
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a class="brand" href="index.html" aria-label="Inicio {brand}">
+          <svg class="brandmark" viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="32" r="16"/>
+            <ellipse cx="32" cy="36" rx="24" ry="10" fill="none" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span>{brand}</span>
+        </a>
+        <nav class="main-nav" aria-label="Primaria">
+          <a href="index.html">Inicio</a>
+          <a href="about.html">Nosotros</a>
+          <a href="services.html">Servicios</a>
+          <a href="contact.html">Contacto</a>
+        </nav>
+      </div>
+    </header>
+    """)
 
-    r = random.random()
-    w = cfg["weights"]
-    cuts = [w["image"], w["image"] + w["web"]]
-    if r < cuts[0]:
-        result = gen_epic_image(day_dir)
-    elif r < cuts[1]:
-        result = gen_mini_web(day_dir)
-    else:
-        result = gen_game(day_dir)
+def tpl_footer(company: CompanyData) -> str:
+    return dedent(f"""\
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <h4>{company.name.split()[0]}</h4>
+          <p>Clínica digital con base en Buenos Aires, operando para toda LATAM.</p>
+        </div>
+        <div>
+          <h4>Contacto</h4>
+          <ul>
+            <li><a href="mailto:{company.email}">{company.email}</a></li>
+            <li><a href="tel:{company.phone.replace(' ', '')}">{company.phone}</a></li>
+            <li><a href="{company.social['instagram']}" target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="{company.social['twitter']}" target="_blank" rel="noopener">X/Twitter</a></li>
+            <li><a href="{company.social['linkedin']}" target="_blank" rel="noopener">LinkedIn</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Navegación</h4>
+          <ul>
+            <li><a href="about.html">Nosotros</a></li>
+            <li><a href="services.html">Servicios</a></li>
+            <li><a href="contact.html">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="container copyright">© <span id="year"></span> {company.name.split()[0]} — Todos los derechos reservados</div>
+    </footer>
+    """)
 
-    write_auto_note(day_dir, f"{result['type']} generado — {result['title']}")
-    update_root_index()
-    print(f"[{now_str()}] Created: {result['type']} — {result['title']} @ {result['path']}")
+def page_wrap(title: str, head_extra: str, header: str, body: str, footer: str) -> str:
+    return dedent(f"""\
+    <!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>{title}</title>
+      <link rel="stylesheet" href="assets/css/styles.css" />
+      {head_extra}
+    </head>
+    <body>
+      {header}
+      {body}
+      {footer}
+      <script src="assets/js/script.js"></script>
+    </body>
+    </html>
+    """)
 
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        day_dir = OUTPUT / today_slug()
-        ensure_dir(day_dir)
-        write_text(day_dir / "ERROR.log", f"[{now_str()}] {repr(e)}\n")
-        update_root_index()
-        print("ERROR:", repr(e))
-        sys.exit(1)
+def tpl_index(brand: str) -> str:
+    return dedent(f"""\
+    <main>
+      <section class="hero container">
+        <div class="hero-text">
+          <h1>{brand}: clínica digital que <strong>nunca te suelta la mano</strong></h1>
+          <p>Teleconsulta, historial clínico y estudios en la nube. Atención segura, humana y accesible — estés donde estés.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="contact.html">Reservar teleconsulta</a>
+            <a class="btn btn-ghost" href="services.html">Ver servicios</a>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img class="hero-img" src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=1600&auto=format&fit=crop" alt="Profesional de salud usando plataforma de telemedicina">
+        </div>
+      </section>
+
+      <section class="features container">
+        <article class="card">
+          <div class="icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3>Telemedicina segura</h3>
+          <p>Consultas encriptadas, prescripción digital y seguimiento posconsulta.</p>
+        </article>
+        <article class="card">
+          <div class="icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8v8a2 2 0 0 1-2 2H5l-2 2V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 11h10M7 15h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3>Atención humana</h3>
+          <p>Agenda ágil, recordatorios y múltiples canales de contacto.</p>
+        </article>
+        <article class="card">
+          <div class="icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </div>
+          <h3>Datos en la nube</h3>
+          <p>Historial clínico centralizado con permisos claros y auditoría.</p>
+        </article>
+      </section>
+
+      <section class="showcase container">
+        <div class="showcase-item">
+          <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1600&auto=format&fit=crop" alt="Dashboard con resultados de laboratorio digitalizados">
+          <div>
+            <h3>Resultados inteligentes</h3>
+            <p>Graficamos tendencias y marcamos valores fuera de rango.</p>
+          </div>
+        </div>
+        <div class="showcase-item">
+          <img src="https://images.unsplash.com/photo-1551190822-a9333d879b1f?q=80&w=1600&auto=format&fit=crop" alt="Paciente en videoconsulta médica">
+          <div>
+            <h3>Videoconsulta estable</h3>
+            <p>Calidad adaptativa y reconexión silenciosa para evitar cortes.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta container">
+        <h2>Tu salud, a un clic de distancia</h2>
+        <p>Profesionales certificados y foco en privacidad.</p>
+        <a class="btn btn-primary" href="contact.html">Empezar ahora</a>
+      </section>
+    </main>
+    """)
+
+def tpl_about(company: CompanyData) -> str:
+    return dedent(f"""\
+    <main class="container page">
+      <h1>Nuestra historia</h1>
+      <p>{company.name.split()[0]} nació con una idea simple: que nadie quede fuera del sistema de salud por barreras geográficas o económicas. Empezamos en Buenos Aires y hoy acompañamos a pacientes en toda LATAM.</p>
+
+      <div class="grid-2">
+        <img src="https://images.unsplash.com/photo-1580281657527-47a87a0f43d1?q=80&w=1600&auto=format&fit=crop" alt="Equipo médico y de ingeniería planificando mejoras">
+        <div>
+          <h2>Misión</h2>
+          <p>Brindar atención confiable, segura y humana con herramientas digitales accesibles.</p>
+          <h2>Visión</h2>
+          <p>Conectar pacientes y profesionales con datos claros y decisiones informadas.</p>
+        </div>
+      </div>
+
+      <h2>Datos de la empresa</h2>
+      <ul class="company">
+        <li><strong>Nombre:</strong> {company.name}</li>
+        <li><strong>Dirección:</strong> {company.address}</li>
+        <li><strong>Teléfono:</strong> {company.phone}</li>
+        <li><strong>Email:</strong> <a href="mailto:{company.email}">{company.email}</a></li>
+        <li><strong>Horario:</strong> {company.hours}</li>
+        <li><strong>Redes:</strong>
+          <a href="{company.social['instagram']}" target="_blank" rel="noopener">Instagram</a> ·
+          <a href="{company.social['twitter']}" target="_blank" rel="noopener">X/Twitter</a> ·
+          <a href="{company.social['linkedin']}" target="_blank" rel="noopener">LinkedIn</a>
+        </li>
+      </ul>
+    </main>
+    """)
+
+def tpl_services() -> str:
+    return dedent("""\
+    <main class="container page">
+      <h1>Servicios</h1>
+      <p>Atención integral y digital. Elegí el plan que mejor se adapte a vos.</p>
+
+      <div class="card-grid">
+        <article class="card service">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+          <h3>Teleconsulta general</h3>
+          <p>Consulta de 30 minutos con clínica médica. Recetas digitales y notas de consulta.</p>
+          <a class="btn btn-secondary" href="contact.html">Reservar</a>
+        </article>
+
+        <article class="card service">
+          <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+          <h3>Pediatría en línea</h3>
+          <p>Control de crecimiento, fiebre y seguimiento con especialistas.</p>
+          <a class="btn btn-secondary" href="contact.html">Reservar</a>
+        </article>
+
+        <article class="card service">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3zM7 10h10" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+          <h3>Laboratorio digital</h3>
+          <p>Carga de resultados, gráficos de evolución y alertas de valores fuera de rango.</p>
+          <a class="btn btn-secondary" href="contact.html">Reservar</a>
+        </article>
+
+        <article class="card service">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+          <h3>Plan crónico</h3>
+          <p>Seguimiento mensual para hipertensión, diabetes y EPOC.</p>
+          <a class="btn btn-secondary" href="contact.html">Reservar</a>
+        </article>
+      </div>
+
+      <section class="gallery">
+        <img src="https://images.unsplash.com/photo-1588515611460-8f5891714f8d?q=80&w=1600&auto=format&fit=crop" alt="Profesional monitoreando parámetros de salud" />
+        <img src="https://images.unsplash.com/photo-1584433144859-1fc3ab64a957?q=80&w=1600&auto=format&fit=crop" alt="Sala limpia con equipamiento médico" />
+      </section>
+    </main>
+    """)
+
+def tpl_contact(company: CompanyData) -> str:
+    return dedent(f"""\
+    <main class="container page">
+      <h1>Contacto</h1>
+      <p>Respondemos de {company.hours} (UTC-3). También por redes.</p>
+
+      <div class="grid-2">
+        <form id="contact-form" class="card form" novalidate>
+          <label>Nombre<input type="text" name="name" required minlength="2" placeholder="Tu nombre" /></label>
+          <label>Email<input type="email" name="email" required placeholder="tucorreo@ejemplo.com" /></label>
+          <label>Motivo
+            <select name="topic" required>
+              <option value="">Seleccioná una opción</option>
+              <option>Teleconsulta</option>
+              <option>Resultados</option>
+              <option>Soporte</option>
+            </select>
+          </label>
+          <label>Mensaje<textarea name="message" required minlength="10" rows="4" placeholder="Contanos brevemente tu consulta"></textarea></label>
+          <button class="btn btn-primary" type="submit">Enviar</button>
+          <p id="form-msg" role="status" aria-live="polite"></p>
+        </form>
+
+        <aside class="card contact-data">
+          <h2>Datos</h2>
+          <ul>
+            <li><strong>Dirección:</strong> {company.address}</li>
+            <li><strong>Teléfono:</strong> <a href="tel:{company.phone.replace(' ', '')}">{company.phone}</a></li>
+            <li><strong>Email:</strong> <a href="mailto:{company.email}">{company.email}</a></li>
+            <li><strong>Instagram:</strong> <a href="{company.social['instagram']}" target="_blank" rel="noopener">@{company.name.split()[0].lower()}</a></li>
+            <li><strong>Twitter:</strong> <a href="{company.social['twitter']}" target="_blank" rel="noopener">@{company.name.split()[0].lower()}</a></li>
+            <li><strong>LinkedIn:</strong> <a href="{company.social['linkedin']}" target="_blank" rel="noopener">/company/{company.name.split()[0].lower()}</a></li>
+            <li><strong>Horario:</strong> {company.hours}</li>
+          </ul>
+        </aside>
+      </div>
+    </main>
+    """)
+
+def tpl_script_js() -> str:
+    return dedent("""\
+    // script.js — utilidades mínimas
+    (function(){
+      const y = document.getElementById('year');
+      if (y) y.textContent = new Date().getFullYear();
+
+      const form = document.getElementById('contact-form');
+      const msg = document.getElementById('form-msg');
+      if (form && msg) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const ok = form.checkValidity();
+          msg.textContent = ok ? '¡Gracias! Te responderemos pronto.' : 'Revisá los campos obligatorios.';
+        });
+      }
+    })();
+    """)
+
+def readme_md(brand: str) -> str:
+    return dedent(f"""\
+    # {brand}
+    Mini-sitio generado automáticamente.
+
+    ## Ver localmente
+    1. Abrí `index.html` en el navegador.
+    2. Navegá con el header/footer (index, about, services, contact).
+
+    ## Publicación (GitHub Pages)
+    - Subí esta carpeta a tu branch de páginas (o usá un workflow que copie a `gh-pages`).
+    - Paths relativos; sin dependencias externas obligatorias.
+    """)
+
+def generate_website(output_dir: str, site_title: str, palette_index: int | None = None) -> dict:
+    brand = site_title
+    slug = slugify(site_title)
+    seed = abs(hash(slug)) % (10**6)
+    palette, pidx = pick_palette(palette_index, seed)
+    company = fake_company(brand)
+
+    base = Path(output_dir)
+    base.mkdir(parents=True, exist_ok=True)
+
+    assets_css = base / "assets" / "css"
+    assets_js = base / "assets" / "js"
+    assets_images = base / "assets" / "images"
+    for p in (assets_css, assets_js, assets_images):
+        p.mkdir(parents=True, exist_ok=True)
+
+    (assets_css / "styles.css").write_text(tpl_styles(palette), encoding="utf-8")
+    (assets_js / "script.js").write_text(tpl_script_js(), encoding="utf-8")
+    (assets_images / "brandmark.svg").write_text(brandmark_svg(), encoding="utf-8")
+
+    header = tpl_header(brand)
+    footer = tpl_footer(company)
+
+    index_html = page_wrap(
+        f"{brand} — Clínica Digital",
+        '<meta name="description" content="Telemedicina, historia clínica y estudios en la nube.">',
+        header.replace('href="index.html">Inicio</a>', 'href="index.html" class="active">Inicio</a>'),
+        tpl_index(brand),
+        footer
+    )
+    about_html = page_wrap(f"{brand} — Sobre nosotros","", header.replace('>Nosotros<',' class="active">Nosotros<'), tpl_about(company), footer)
+    services_html = page_wrap(f"{brand} — Servicios","", header.replace('>Servicios<',' class="active">Servicios<'), tpl_services(), footer)
+    contact_html = page_wrap(f"{brand} — Contacto","", header.replace('>Contacto<',' class="active">Contacto<'), tpl_contact(company), footer)
+
+    (base / "index.html").write_text(index_html, encoding="utf-8")
+    (base / "about.html").write_text(about_html, encoding="utf-8")
+    (base / "services.html").write_text(services_html, encoding="utf-8")
+    (base / "contact.html").write_text(contact_html, encoding="utf-8")
+    (base / "README.md").write_text(readme_md(brand), encoding="utf-8")
+
+    metadata = {
+        "title": brand,
+        "slug": slug,
+        "palette": palette,
+        "theme_story": f"{brand} integra teleconsulta, seguimiento y estudios en la nube con foco en privacidad en LATAM.",
+        "company": {
+            "name": company.name, "address": company.address, "phone": company.phone,
+            "email": company.email, "hours": company.hours, "social": company.social
+        },
+        "pages": ["index.html","about.html","services.html","contact.html"],
+        "images": [
+            f"assets/images/hero_{slug}.jpg","assets/images/section_1.jpg",
+            "assets/images/section_2.jpg","assets/images/brandmark.svg"
+        ],
+        "created_at": now_iso()
+    }
+    (base / "metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return {"slug": slug, "palette_index": pidx, "output_dir": str(base), "pages": metadata["pages"]}
