@@ -1,13 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-Orchestrator — Websites overhaul (con --force)
-NO toca tu esquema de output; la ruta viene por flag/env/settings/config.
+Orchestrator — Websites overhaul (con --force y fallback de OUTPUT_DIR)
+- Respeta tu esquema de output por fecha.
+- Si no se provee OUTPUT_DIR por flag/env/settings/config.yaml,
+  usa automáticamente: output/<YYYY-MM-DD>/web_auto-<HHMMSS>/
+
+CLI típico (forzado):
+  python orchestrator.py --task website --force --verbose
+Opcional:
+  --output-dir "output/2025-09-16/web_mi-sitio_123456" --site-title "Mi Sitio" --palette-index 2
 """
 
 from __future__ import annotations
-import os, sys, json, random, argparse, traceback, re
+import os, sys, json, random, argparse, traceback, re, time
 from pathlib import Path
 from datetime import datetime
+
+# -------------------------
+# Helpers de texto
+# -------------------------
+def _slugify(s: str) -> str:
+    import re as _re
+    s = _re.sub(r"[^\w\s-]", "", s, flags=_re.U)
+    s = _re.sub(r"[\s_-]+", "-", s.strip().lower(), flags=_re.U)
+    return s or "site"
 
 # -------------------------
 # Carga opcional de config
@@ -28,25 +44,43 @@ def _maybe_load_yaml_config() -> dict:
 # -------------------------
 # Resolución de parámetros
 # -------------------------
-def resolve_output_dir(cli_value: str | None) -> str:
+def resolve_output_dir(cli_value: str | None, site_title: str | None) -> str:
+    """
+    Orden de resolución:
+      1) --output-dir
+      2) env OUTPUT_DIR
+      3) settings.OUTPUT_DIR
+      4) config.yaml: output_dir
+      5) FALLBACK AUTOMÁTICO: output/<hoy>/web_auto-<HHMMSS>/
+    """
+    # 1) Flag CLI
     if cli_value:
         return cli_value
+
+    # 2) Env var
     env = os.getenv("OUTPUT_DIR")
     if env:
         return env
+
+    # 3) settings.py
     try:
         import settings  # type: ignore
         if getattr(settings, "OUTPUT_DIR", None):
             return settings.OUTPUT_DIR  # type: ignore
     except Exception:
         pass
+
+    # 4) config.yaml
     cfg = _maybe_load_yaml_config()
     if isinstance(cfg, dict) and cfg.get("output_dir"):
         return str(cfg["output_dir"])
-    raise SystemExit(
-        "[orchestrator] ERROR: no se pudo resolver OUTPUT_DIR.\n"
-        "Proveé --output-dir, env OUTPUT_DIR, settings.OUTPUT_DIR o config.yaml:output_dir"
-    )
+
+    # 5) Fallback automático (garantiza output en runs forzados/manuales)
+    today = datetime.now().strftime("%Y-%m-%d")
+    hhmmss = time.strftime("%H%M%S")
+    base = Path("output") / today
+    slug = _slugify(site_title or "web")
+    return str(base / f"web_auto-{slug}_{hhmmss}")
 
 def resolve_site_title(cli_value: str | None) -> str:
     if cli_value:
@@ -149,19 +183,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args(argv)
 
-    try:
-        output_dir = resolve_output_dir(args.output_dir)
-    except SystemExit as e:
-        print(str(e), file=sys.stderr)
-        return 2
-
     site_title = resolve_site_title(args.site_title)
+    # (clave) resolvemos OUTPUT_DIR con fallback automático
+    output_dir = resolve_output_dir(args.output_dir, site_title=site_title)
     palette_index = resolve_palette_index(args.palette_index)
 
     if args.verbose:
         print(f"[orchestrator] argv={sys.argv}")
         print(f"[orchestrator] CWD={os.getcwd()}")
-        print(f"[orchestrator] output_dir (raw)={output_dir}")
+        print(f"[orchestrator] output_dir (final)={output_dir}")
 
     if not args.force:
         exceeded, lim = exceeded_daily_limit(task=args.task, output_dir=output_dir)
