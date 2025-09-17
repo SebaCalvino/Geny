@@ -1,0 +1,95 @@
+    <!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>MediOrion — Contacto</title>
+      <link rel="stylesheet" href="assets/css/styles.css" />
+
+    </head>
+    <body>
+      <header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html" aria-label="Inicio MediOrion">
+      <svg class="brandmark" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="16"/>
+        <ellipse cx="32" cy="36" rx="24" ry="10" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <span>MediOrion</span>
+    </a>
+    <nav class="main-nav" aria-label="Primaria">
+      <a href="index.html">Inicio</a>
+      <a href="about.html">Nosotros</a>
+      <a href="services.html">Servicios</a>
+      <a href="contact.html" class="active">Contacto</a>
+    </nav>
+  </div>
+</header>
+
+      <main class="container page">
+  <h1>Contacto</h1>
+  <p>Respondemos de Lun–Vie 9:00–18:00 (UTC-3). También por redes.</p>
+
+  <div class="grid-2">
+    <form id="contact-form" class="card form" novalidate>
+      <label>Nombre<input type="text" name="name" required minlength="2" placeholder="Tu nombre" /></label>
+      <label>Email<input type="email" name="email" required placeholder="tucorreo@ejemplo.com" /></label>
+      <label>Motivo
+        <select name="topic" required>
+          <option value="">Seleccioná una opción</option>
+          <option>Teleconsulta</option>
+          <option>Resultados</option>
+          <option>Soporte</option>
+        </select>
+      </label>
+      <label>Mensaje<textarea name="message" required minlength="10" rows="4" placeholder="Contanos brevemente tu consulta"></textarea></label>
+      <button class="btn btn-primary" type="submit">Enviar</button>
+      <p id="form-msg" role="status" aria-live="polite"></p>
+    </form>
+
+    <aside class="card contact-data">
+      <h2>Datos</h2>
+      <ul>
+        <li><strong>Dirección:</strong> Av. Corrientes 2345, CABA, Argentina</li>
+        <li><strong>Teléfono:</strong> <a href="tel:+549112345-6789">+54 9 11 2345-6789</a></li>
+        <li><strong>Email:</strong> <a href="mailto:hola@mediorion.com">hola@mediorion.com</a></li>
+        <li><strong>Instagram:</strong> <a href="https://instagram.com/mediorion" target="_blank" rel="noopener">@mediorion</a></li>
+        <li><strong>Twitter:</strong> <a href="https://x.com/mediorion" target="_blank" rel="noopener">@mediorion</a></li>
+        <li><strong>LinkedIn:</strong> <a href="https://linkedin.com/company/mediorion" target="_blank" rel="noopener">/company/mediorion</a></li>
+        <li><strong>Horario:</strong> Lun–Vie 9:00–18:00</li>
+      </ul>
+    </aside>
+  </div>
+</main>
+
+      <footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>MediOrion</h4>
+      <p>Clínica digital con base en Buenos Aires, operando para toda LATAM.</p>
+    </div>
+    <div>
+      <h4>Contacto</h4>
+      <ul>
+        <li><a href="mailto:hola@mediorion.com">hola@mediorion.com</a></li>
+        <li><a href="tel:+549112345-6789">+54 9 11 2345-6789</a></li>
+        <li><a href="https://instagram.com/mediorion" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="https://x.com/mediorion" target="_blank" rel="noopener">X/Twitter</a></li>
+        <li><a href="https://linkedin.com/company/mediorion" target="_blank" rel="noopener">LinkedIn</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Navegación</h4>
+      <ul>
+        <li><a href="about.html">Nosotros</a></li>
+        <li><a href="services.html">Servicios</a></li>
+        <li><a href="contact.html">Contacto</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container copyright">© <span id="year"></span> MediOrion — Todos los derechos reservados</div>
+</footer>
+
+      <script src="assets/js/script.js"></script>
+    </body>
+    </html>
