@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="skyGradient" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#1A1A2E"/>
+      <stop offset="0.3" stop-color="#16213E"/>
+      <stop offset="0.7" stop-color="#0F3460"/>
+      <stop offset="1" stop-color="#0A0A0F"/>
+    </linearGradient>
+    <radialGradient id="starGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Sky -->
+  <rect width="1920" height="1080" fill="url(#skyGradient)"/>
+  
+  <!-- Stars -->
+  <circle cx="200" cy="150" r="2" fill="url(#starGlow)"/>
+  <circle cx="400" cy="200" r="1.5" fill="url(#starGlow)"/>
+  <circle cx="600" cy="100" r="2.5" fill="url(#starGlow)"/>
+  <circle cx="800" cy="180" r="1" fill="url(#starGlow)"/>
+  <circle cx="1000" cy="120" r="2" fill="url(#starGlow)"/>
+  <circle cx="1200" cy="250" r="1.5" fill="url(#starGlow)"/>
+  <circle cx="1400" cy="80" r="2" fill="url(#starGlow)"/>
+  <circle cx="1600" cy="220" r="1" fill="url(#starGlow)"/>
+  <circle cx="1800" cy="140" r="2.5" fill="url(#starGlow)"/>
+  
+  <!-- Mountains -->
+  <path d="M0,800 L200,600 L400,700 L600,500 L800,650 L1000,450 L1200,550 L1400,400 L1600,500 L1800,350 L1920,400 L1920,1080 L0,1080 Z" fill="#0A0A0F"/>
+  <path d="M0,900 L300,750 L600,850 L900,650 L1200,800 L1500,600 L1800,750 L1920,700 L1920,1080 L0,1080 Z" fill="#1A1A2E"/>
+  
+  <!-- Aurora Effect -->
+  <path d="M0,300 Q480,200 960,250 Q1440,300 1920,200 L1920,400 Q1440,350 960,400 Q480,450 0,400 Z" fill="url(#skyGradient)" opacity="0.3"/>
+</svg>

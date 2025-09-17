@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tektra - Demo de Funcionalidades</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .demo-container {
+            max-width: 800px;
+            margin: 100px auto;
+            padding: 40px;
+            background: var(--dark-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(244, 114, 182, 0.2);
+        }
+        .demo-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+        .demo-section {
+            margin-bottom: 30px;
+        }
+        .demo-section h3 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+        .demo-section p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .demo-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .demo-code {
+            background: var(--dark-bg);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(244, 114, 182, 0.1);
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: var(--text-primary);
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="demo-title">🚀 Tektra - Demo de Funcionalidades</h1>
+        
+        <div class="demo-section">
+            <h3>✨ Características Principales</h3>
+            <p>
+                Esta página web oficial de Tektra incluye todas las funcionalidades modernas 
+                que esperarías de un sitio web profesional y futurista.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎨 Diseño Futurista</h3>
+            <p>
+                Basado en la paleta de colores del logo de Tektra (magenta, púrpura, azul eléctrico), 
+                con efectos de glassmorphism, gradientes y animaciones suaves.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h3>📱 Completamente Responsive</h3>
+            <p>
+                Optimizado para desktop, tablet y móvil. Prueba redimensionar la ventana 
+                para ver cómo se adapta el diseño.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h3>🔐 Sistema de Login</h3>
+            <p>
+                Modal de login con validación de formularios, similar al diseño de referencia 
+                que proporcionaste.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h3>📧 Formulario de Contacto</h3>
+            <p>
+                Formulario funcional con validación en tiempo real y notificaciones dinámicas.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h3>⚡ Animaciones y Efectos</h3>
+            <p>
+                Efectos de parallax, animaciones de entrada, hover effects y transiciones suaves 
+                en todos los elementos.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎯 Navegación Intuitiva</h3>
+            <p>
+                Menú de navegación con scroll suave, indicadores de sección activa y 
+                menú hamburguesa para móviles.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h3>📊 Información Completa</h3>
+            <p>
+                Toda la información sobre Tektra: historia, misión, características, 
+                funcionalidades y datos de contacto.
+            </p>
+        </div>
+
+        <div class="demo-code">
+            <strong>Estructura de archivos creada:</strong><br>
+            Tektra/<br>
+            ├── index.html          # Página principal<br>
+            ├── styles.css          # Estilos CSS<br>
+            ├── script.js           # Funcionalidad JavaScript<br>
+            ├── favicon.svg         # Favicon<br>
+            ├── manifest.json       # PWA manifest<br>
+            ├── config.json         # Configuración<br>
+            ├── README.md           # Documentación<br>
+            └── assets/<br>
+                └── images/<br>
+                    ├── logo.svg<br>
+                    ├── hero-bg.svg<br>
+                    └── feature-icons.svg
+        </div>
+
+        <div class="demo-buttons">
+            <a href="index.html" class="btn btn-primary">Ver Página Principal</a>
+            <button onclick="openLoginModal()" class="btn btn-secondary">Probar Login</button>
+        </div>
+    </div>
+
+    <!-- Login Modal (copiado del index.html) -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Iniciar Sesión</h2>
+                <span class="close" onclick="closeLoginModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="text" id="username" name="username" placeholder="Usuario" required>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="password" id="password" name="password" placeholder="Contraseña" required>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <circle cx="12" cy="16" r="1"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="remember">
+                            <span class="checkmark"></span>
+                            Recordarme
+                        </label>
+                        <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Iniciar Sesión</button>
+                    <div class="register-link">
+                        <p>¿No tienes cuenta? <a href="#">Registrarse</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

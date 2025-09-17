@@ -1,0 +1,26 @@
+{
+  "name": "Tektra - El Artesano Digital Autónomo",
+  "short_name": "Tektra",
+  "description": "Un bot autónomo que genera imágenes épicas, sitios web completos y juegos simples de forma continua.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#F472B6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/logo.svg",
+      "sizes": "200x60",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "utilities", "developer"],
+  "lang": "es",
+  "dir": "ltr"
+}

@@ -1,0 +1,89 @@
+{
+  "site": {
+    "name": "Tektra",
+    "tagline": "El Artesano Digital Autónomo",
+    "description": "Un bot autónomo que genera imágenes épicas, sitios web completos y juegos simples de forma continua.",
+    "version": "1.0.0",
+    "author": "Tektra Team",
+    "url": "https://tektra.com"
+  },
+  "colors": {
+    "primary": {
+      "magenta": "#F472B6",
+      "purple": "#A855F7",
+      "blue": "#3B82F6"
+    },
+    "accent": {
+      "cyan": "#22D3EE",
+      "pink": "#EC4899"
+    },
+    "neutral": {
+      "dark-bg": "#0A0A0F",
+      "dark-surface": "#1A1A2E",
+      "dark-card": "#16213E",
+      "text-primary": "#FFFFFF",
+      "text-secondary": "#A1A1AA",
+      "text-muted": "#71717A"
+    }
+  },
+  "features": [
+    {
+      "title": "Generación de Imágenes Épicas",
+      "description": "Prompts detallados crean visuales únicos e impresionantes. Cada imagen se guarda con metadata para reproducibilidad.",
+      "icon": "🎨"
+    },
+    {
+      "title": "Sitios Web Completos",
+      "description": "Páginas HTML/CSS/JS responsivas con diseño coherente, paletas y narrativas. Incluye landing page, navegación y footer.",
+      "icon": "🌐"
+    },
+    {
+      "title": "Juegos Simples",
+      "description": "Más allá de Snake: Tektra genera juegos estéticos y minimalistas con mecánicas claras y condiciones de victoria.",
+      "icon": "🎮"
+    },
+    {
+      "title": "Outputs Organizados",
+      "description": "Las creaciones se guardan en `output/YYYY-MM-DD/` con un índice para fácil exploración.",
+      "icon": "📁"
+    },
+    {
+      "title": "Automatización",
+      "description": "Se ejecuta automáticamente en un horario via GitHub Actions, o localmente con Flask.",
+      "icon": "⚡"
+    },
+    {
+      "title": "Endpoints API",
+      "description": "Verifica la última creación con `/quehaces` y actividad reciente con `/novedades`.",
+      "icon": "🔗"
+    }
+  ],
+  "contact": {
+    "email": "contacto@tektra.dev",
+    "github": "github.com/tektra-project",
+    "api": "status.tektra.dev",
+    "discord": "discord.gg/tektra"
+  },
+  "social": {
+    "github": "https://github.com/tektra-project",
+    "twitter": "https://twitter.com/tektra_dev",
+    "discord": "https://discord.gg/tektra"
+  },
+  "seo": {
+    "keywords": [
+      "tektra",
+      "bot autónomo",
+      "generación de imágenes",
+      "sitios web automáticos",
+      "juegos generados",
+      "creatividad artificial",
+      "artesano digital"
+    ],
+    "og": {
+      "title": "Tektra - El Artesano Digital Autónomo",
+      "description": "Un bot autónomo que genera imágenes épicas, sitios web completos y juegos simples de forma continua.",
+      "image": "assets/images/og-image.png",
+      "type": "website"
+    }
+  }
+}

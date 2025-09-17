@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <linearGradient id="iconGradient1" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#F472B6"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="iconGradient2" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#EC4899"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Image Generation Icon -->
+  <g transform="translate(50, 50)">
+    <circle cx="0" cy="0" r="30" fill="url(#iconGradient1)" opacity="0.2"/>
+    <path d="M-20,-20 L20,-20 L20,20 L-20,20 Z" fill="none" stroke="url(#iconGradient1)" stroke-width="3"/>
+    <circle cx="0" cy="0" r="8" fill="url(#iconGradient1)"/>
+    <path d="M-15,-15 L-10,-10 M15,-15 L10,-10 M-15,15 L-10,10 M15,15 L10,10" stroke="url(#iconGradient1)" stroke-width="2"/>
+  </g>
+  
+  <!-- Website Icon -->
+  <g transform="translate(150, 50)">
+    <circle cx="0" cy="0" r="30" fill="url(#iconGradient2)" opacity="0.2"/>
+    <rect x="-20" y="-15" width="40" height="30" fill="none" stroke="url(#iconGradient2)" stroke-width="3"/>
+    <rect x="-15" y="-10" width="30" height="20" fill="url(#iconGradient2)" opacity="0.3"/>
+    <circle cx="-10" cy="-5" r="2" fill="url(#iconGradient2)"/>
+    <circle cx="0" cy="-5" r="2" fill="url(#iconGradient2)"/>
+    <circle cx="10" cy="-5" r="2" fill="url(#iconGradient2)"/>
+  </g>
+  
+  <!-- Game Icon -->
+  <g transform="translate(250, 50)">
+    <circle cx="0" cy="0" r="30" fill="url(#iconGradient1)" opacity="0.2"/>
+    <rect x="-15" y="-15" width="30" height="30" fill="none" stroke="url(#iconGradient1)" stroke-width="3"/>
+    <circle cx="-8" cy="-8" r="3" fill="url(#iconGradient1)"/>
+    <circle cx="8" cy="8" r="3" fill="url(#iconGradient1)"/>
+    <path d="M-5,-5 L5,5 M5,-5 L-5,5" stroke="url(#iconGradient1)" stroke-width="2"/>
+  </g>
+  
+  <!-- Automation Icon -->
+  <g transform="translate(350, 50)">
+    <circle cx="0" cy="0" r="30" fill="url(#iconGradient2)" opacity="0.2"/>
+    <circle cx="0" cy="0" r="20" fill="none" stroke="url(#iconGradient2)" stroke-width="3"/>
+    <circle cx="0" cy="0" r="12" fill="none" stroke="url(#iconGradient2)" stroke-width="2"/>
+    <circle cx="0" cy="0" r="4" fill="url(#iconGradient2)"/>
+    <path d="M0,-20 L0,-12 M20,0 L12,0 M0,20 L0,12 M-20,0 L-12,0" stroke="url(#iconGradient2)" stroke-width="2"/>
+  </g>
+</svg>

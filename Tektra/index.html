@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tektra - Autonomous Creative AI</title>
+    <meta name="description" content="Stop losing creative opportunities due to heavy workloads. Tektra works 24/7 to generate epic images, complete websites, and engaging games while you focus on what matters most.">
+    <meta name="keywords" content="tektra, autonomous ai, image generation, automatic websites, generated games, creative ai, autonomous bot">
+    <meta name="author" content="Tektra Team">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Tektra - Autonomous Creative AI">
+    <meta property="og:description" content="Stop losing creative opportunities due to heavy workloads. Tektra works 24/7 to generate epic images, complete websites, and engaging games while you focus on what matters most.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tektra.com">
+    <meta property="og:image" content="assets/images/logo.svg">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tektra - Autonomous Creative AI">
+    <meta name="twitter:description" content="Stop losing creative opportunities due to heavy workloads. Tektra works 24/7 to generate epic images, complete websites, and engaging games while you focus on what matters most.">
+    <meta name="twitter:image" content="assets/images/logo.svg">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 64 64" width="40" height="40">
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0" x2="1" y1="0" y2="1">
+                                <stop offset="0" stop-color="#F472B6" stop-opacity="0.95"/>
+                                <stop offset="1" stop-color="#3B82F6" stop-opacity="0.55"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="32" cy="32" r="16" fill="url(#logoGradient)"/>
+                        <ellipse cx="32" cy="36" rx="24" ry="10" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
+                        <circle cx="40" cy="28" r="3" fill="#22D3EE"/>
+                    </svg>
+                </div>
+                <span class="logo-text">TEKTRA</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#gallery" class="nav-link">Gallery</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <button class="login-btn" onclick="openLoginModal()">Login</button>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-background">
+            <img src="assets/images/hero-background.svg" alt="Fondo futurista" class="hero-bg-image">
+        </div>
+        <div class="hero-content">
+            <div class="hero-logo-container">
+                <img src="assets/images/hero-logo.svg" alt="Tektra Logo" class="hero-logo">
+            </div>
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <span class="gradient-text">TEKTRA</span>
+                </h1>
+                <p class="hero-description">
+                    Stop losing creative opportunities due to heavy workloads and time constraints. 
+                    Tektra works 24/7 to generate <strong>epic images</strong>, 
+                    <strong>complete websites</strong>, and <strong>engaging games</strong> 
+                    while you focus on what matters most. Never miss a creative moment again.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="scrollToSection('features')">
+                        Explore Creations
+                    </button>
+                    <button class="btn btn-secondary" onclick="openSignupModal()">
+                        Sign Up
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">About Tektra</h2>
+                <p class="section-subtitle">
+                    Inspired by the Greek word <em>téktōn</em> (τέκτων), 
+                    meaning "craftsman" or "builder"
+                </p>
+                <div class="slogan">
+                    <h3>"Creativity never sleeps, neither does Tektra"</h3>
+                </div>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Our Mission</h3>
+                    <p>
+                        Tektra solves the critical problem of creative opportunity loss due to 
+                        overwhelming workloads and time constraints. While you're busy with 
+                        essential tasks, Tektra continuously generates high-quality digital content 
+                        - epic images, complete websites, and engaging games - ensuring you never 
+                        miss a creative moment.
+                    </p>
+                    <h3>Our Vision</h3>
+                    <p>
+                        To be the autonomous creative engine that never stops working. We believe 
+                        that creative potential shouldn't be limited by time constraints or heavy 
+                        workloads. Tektra ensures your creative ideas are always being developed, 
+                        even when you can't be there to work on them.
+                    </p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat">
+                        <div class="stat-number">300+</div>
+                        <div class="stat-label">Game Variants</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Autonomous Creation</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Creativity</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Key Features</h2>
+                <p class="section-subtitle">
+                    Discover Tektra's unique capabilities
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                    <h3>Epic Image Generation</h3>
+                    <p>
+                        Detailed prompts create unique and impressive visuals. 
+                        Each image is saved with metadata for reproducibility.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27,6.96 12,12.01 20.73,6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                    </div>
+                    <h3>Complete Websites</h3>
+                    <p>
+                        Responsive HTML/CSS/JS pages with coherent design, 
+                        palettes and narratives. Includes landing page, navigation and footer.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </div>
+                    <h3>Engaging Games</h3>
+                    <p>
+                        Beyond Snake: Tektra generates aesthetic and minimalist games 
+                        with clear mechanics and victory conditions.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                        </svg>
+                    </div>
+                    <h3>Organized Outputs</h3>
+                    <p>
+                        Creations are saved in `output/YYYY-MM-DD/` 
+                        with an index for easy exploration.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                        </svg>
+                    </div>
+                    <h3>Automation</h3>
+                    <p>
+                        Runs automatically on schedule via GitHub Actions, 
+                        or locally with Flask.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"/>
+                            <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                            <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                            <path d="M12 3c0 1-1 3-3 3s-3-2-3-3 1-3 3-3 3 2 3 3"/>
+                            <path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3"/>
+                        </svg>
+                    </div>
+                    <h3>API Endpoints</h3>
+                    <p>
+                        Check the latest creation with `/quehaces` and recent activity 
+                        with `/novedades`.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="gallery">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Creation Gallery</h2>
+                <p class="section-subtitle">
+                    A showcase of Tektra's most recent creations
+                </p>
+            </div>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-card">
+                        <div class="gallery-image">
+                            <div class="visual-element image-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="gallery-info">
+                            <h4>Epic Image</h4>
+                            <p>Auto-generated</p>
+                            <span class="gallery-tag">Image</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-card">
+                        <div class="gallery-image">
+                            <div class="visual-element website-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="2" y1="12" x2="22" y2="12"/>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="gallery-info">
+                            <h4>Complete Website</h4>
+                            <p>Responsive design</p>
+                            <span class="gallery-tag">Website</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-card">
+                        <div class="gallery-image">
+                            <div class="visual-element game-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                    <line x1="8" y1="21" x2="16" y2="21"/>
+                                    <line x1="12" y1="17" x2="12" y2="21"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="gallery-info">
+                            <h4>Minimalist Game</h4>
+                            <p>Clear mechanics</p>
+                            <span class="gallery-tag">Game</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-card">
+                        <div class="gallery-image">
+                            <div class="visual-element auto-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="gallery-info">
+                            <h4>Autonomous Creation</h4>
+                            <p>No human intervention</p>
+                            <span class="gallery-tag">Auto</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Contact</h2>
+                <p class="section-subtitle">
+                    Interested in Tektra? Get in touch with us!
+                </p>
+            </div>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>Contact Information</h3>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4>Email</h4>
+                            <p>contacto@tektra.dev</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 19c-5 0-8-3-8-8s3-8 8-8 8 3 8 8 3 8 8 8"/>
+                                <path d="M9 19c0 5 3 8 8 8s8-3 8-8"/>
+                                <path d="M9 19c-5 0-8-3-8-8s3-8 8-8"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4>GitHub</h4>
+                            <p>github.com/tektra-project</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4>API Status</h4>
+                            <p>status.tektra.dev</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4>Discord</h4>
+                            <p>discord.gg/tektra</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-background">
+            <div class="footer-particles"></div>
+            <div class="footer-grid-overlay"></div>
+        </div>
+        <div class="container">
+            <div class="footer-main">
+                <div class="footer-hero">
+                    <div class="footer-logo-section">
+                        <div class="footer-logo">
+                            <div class="logo-container">
+                                <svg viewBox="0 0 64 64" width="60" height="60">
+                                    <defs>
+                                        <linearGradient id="footerLogoGradient" x1="0" x2="1" y1="0" y2="1">
+                                            <stop offset="0" stop-color="#F472B6" stop-opacity="0.95"/>
+                                            <stop offset="0.5" stop-color="#A855F7" stop-opacity="0.8"/>
+                                            <stop offset="1" stop-color="#3B82F6" stop-opacity="0.55"/>
+                                        </linearGradient>
+                                        <filter id="glow">
+                                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                            <feMerge> 
+                                                <feMergeNode in="coloredBlur"/>
+                                                <feMergeNode in="SourceGraphic"/>
+                                            </feMerge>
+                                        </filter>
+                                    </defs>
+                                    <circle cx="32" cy="32" r="16" fill="url(#footerLogoGradient)" filter="url(#glow)"/>
+                                    <ellipse cx="32" cy="36" rx="24" ry="10" fill="none" stroke="url(#footerLogoGradient)" stroke-width="2"/>
+                                    <circle cx="40" cy="28" r="3" fill="#22D3EE"/>
+                                </svg>
+                            </div>
+                            <div class="logo-text">
+                                <h2>TEKTRA</h2>
+                                <p>Autonomous Creative AI</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-cta">
+                        <h3>Let's create something legendary together!</h3>
+                        <div class="footer-actions">
+                            <button class="btn btn-primary" onclick="openSignupModal()">
+                                <span>Get Started</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                            <button class="btn btn-secondary" onclick="scrollToSection('contact')">
+                                <span>Contact Us</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-content-grid">
+                    <div class="footer-section">
+                        <h4>Product</h4>
+                        <ul>
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#gallery">Gallery</a></li>
+                            <li><a href="#pricing">Pricing</a></li>
+                            <li><a href="#api">API Documentation</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="#about">About Us</a></li>
+                            <li><a href="#careers">Careers</a></li>
+                            <li><a href="#blog">Blog</a></li>
+                            <li><a href="#press">Press Kit</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="#help">Help Center</a></li>
+                            <li><a href="#docs">Documentation</a></li>
+                            <li><a href="#tutorials">Tutorials</a></li>
+                            <li><a href="#community">Community</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Connect</h4>
+                        <div class="social-links">
+                            <a href="https://github.com/tektra-project" class="social-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 19c-5 0-8-3-8-8s3-8 8-8 8 3 8 8 3 8 8 8"/>
+                                    <path d="M9 19c0 5 3 8 8 8s8-3 8-8"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                            <a href="https://twitter.com/tektra_dev" class="social-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+                                </svg>
+                                <span>Twitter</span>
+                            </a>
+                            <a href="https://discord.gg/tektra" class="social-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                <span>Discord</span>
+                            </a>
+                            <a href="mailto:contacto@tektra.dev" class="social-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                                <span>Email</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <div class="footer-copyright">
+                        <p>Designed and developed with <span class="heart">♥</span> by Tektra Team © 2025. All rights reserved.</p>
+                    </div>
+                    <div class="footer-legal">
+                        <a href="#privacy">Privacy Policy</a>
+                        <a href="#terms">Terms of Service</a>
+                        <a href="#cookies">Cookie Policy</a>
+                    </div>
+                </div>
+                <div class="footer-quote">
+                    <p>"Creativity never sleeps, neither does Tektra."</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login</h2>
+                <span class="close" onclick="closeLoginModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="text" id="username" name="username" placeholder="Username" required>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="password" id="password" name="password" placeholder="Password" required>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <circle cx="12" cy="16" r="1"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="remember">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Login</button>
+                    <div class="register-link">
+                        <p>Don't have an account? <a href="#" onclick="openSignupModal(); closeLoginModal();">Sign Up</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sign Up</h2>
+                <span class="close" onclick="closeSignupModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="signupForm">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="text" id="signup-name" name="name" placeholder="Full Name" required>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="email" id="signup-email" name="email" placeholder="Email" required>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="password" id="signup-password" name="password" placeholder="Password" required>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <circle cx="12" cy="16" r="1"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="password" id="signup-confirm" name="confirm-password" placeholder="Confirm Password" required>
+                            <div class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <circle cx="12" cy="16" r="1"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="terms" required>
+                            <span class="checkmark"></span>
+                            I agree to the <a href="#" class="terms-link">Terms of Service</a>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Sign Up</button>
+                    <div class="register-link">
+                        <p>Already have an account? <a href="#" onclick="openLoginModal(); closeSignupModal();">Login</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
