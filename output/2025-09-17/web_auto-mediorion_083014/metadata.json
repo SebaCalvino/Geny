@@ -1,0 +1,36 @@
+{
+  "title": "MediOrion",
+  "slug": "mediorion",
+  "palette": {
+    "bg": "#0b132b",
+    "fg": "#eaeaea",
+    "acc1": "#6fffe9",
+    "acc2": "#ffd166"
+  },
+  "theme_story": "MediOrion integra teleconsulta, seguimiento y estudios en la nube con foco en privacidad en LATAM.",
+  "company": {
+    "name": "MediOrion S.A.S.",
+    "address": "Av. Corrientes 2345, CABA, Argentina",
+    "phone": "+54 9 11 2345-6789",
+    "email": "hola@mediorion.com",
+    "hours": "Lun–Vie 9:00–18:00",
+    "social": {
+      "instagram": "https://instagram.com/mediorion",
+      "twitter": "https://x.com/mediorion",
+      "linkedin": "https://linkedin.com/company/mediorion"
+    }
+  },
+  "pages": [
+    "index.html",
+    "about.html",
+    "services.html",
+    "contact.html"
+  ],
+  "images": [
+    "assets/images/hero_mediorion.jpg",
+    "assets/images/section_1.jpg",
+    "assets/images/section_2.jpg",
+    "assets/images/brandmark.svg"
+  ],
+  "created_at": "2025-09-17T08:30:14"
+}
