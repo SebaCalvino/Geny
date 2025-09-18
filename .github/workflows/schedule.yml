@@ -1,50 +1,39 @@
-name: Maker Bot (cron)
+name: Tektra schedule
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # corre cada 30 minutos
-  workflow_dispatch:
+    - cron: "*/30 * * * *"   # cada 30 minutos
+  workflow_dispatch:          # también lo podés correr a mano
 
 permissions:
-  contents: write   # necesario para commit/push con GITHUB_TOKEN
+  contents: write
 
 jobs:
-  run:
+  run-tektra:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install deps (tolerante)
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
-          # Pillow opcional para PNG; si falla, el orquestador cae a SVG
-          pip install pillow || true
+          pip install -r requirements.txt || true
+          pip install pyyaml faker
 
-      - name: Run orchestrator
+      - name: Run orchestrator (3 items por ciclo)
         run: |
-          python orchestrator.py
+          python orchestrator.py --count 3
 
-      - name: Commit & push changes (si los hay)
-        env:
-          TZ: America/Argentina/Buenos_Aires
+      - name: Commit outputs
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "tektra-bot"
+          git config user.email "tektra@users.noreply.github.com"
           git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(bot): auto-run output update"
-            # protegerse de conflictos de cron concurrentes
-            git pull --rebase || true
-            git push
-          else
-            echo "No hay cambios para commitear."
-          fi
+          git commit -m "tektra: auto-run $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "Nada para commitear"
+          git push
