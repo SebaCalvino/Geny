@@ -1,0 +1,36 @@
+{
+  "title": "Clinia Nova",
+  "slug": "clinia-nova",
+  "palette": {
+    "bg": "#0f0f12",
+    "fg": "#e8e8ec",
+    "acc1": "#7c3aed",
+    "acc2": "#22d3ee"
+  },
+  "theme_story": "Clinia Nova integra teleconsulta, seguimiento y estudios en la nube con foco en privacidad en LATAM.",
+  "company": {
+    "name": "Clinia Nova S.A.S.",
+    "address": "Av. Corrientes 2345, CABA, Argentina",
+    "phone": "+54 9 11 2345-6789",
+    "email": "hola@clinia-nova.com",
+    "hours": "Lun–Vie 9:00–18:00",
+    "social": {
+      "instagram": "https://instagram.com/clinia-nova",
+      "twitter": "https://x.com/clinia-nova",
+      "linkedin": "https://linkedin.com/company/clinia-nova"
+    }
+  },
+  "pages": [
+    "index.html",
+    "about.html",
+    "services.html",
+    "contact.html"
+  ],
+  "images": [
+    "assets/images/hero_clinia-nova.jpg",
+    "assets/images/section_1.jpg",
+    "assets/images/section_2.jpg",
+    "assets/images/brandmark.svg"
+  ],
+  "created_at": "2025-09-18T06:33:53"
+}
