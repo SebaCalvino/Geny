@@ -2,38 +2,37 @@ name: Tektra schedule
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # cada 30 minutos
-  workflow_dispatch:          # también lo podés correr a mano
-
-permissions:
-  contents: write
+    - cron: "0 * * * *" # cada hora
+  workflow_dispatch:
 
 jobs:
   run-tektra:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.10"
 
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
-          pip install pyyaml faker
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Create output dir
+        run: mkdir -p output
 
       - name: Run orchestrator (3 items por ciclo)
-        run: |
-          python orchestrator.py --count 3
+        run: python orchestrator.py
 
       - name: Commit outputs
         run: |
-          git config user.name "tektra-bot"
-          git config user.email "tektra@users.noreply.github.com"
-          git add -A
-          git commit -m "tektra: auto-run $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "Nada para commitear"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/*
+          git commit -m "Auto: add new Tektra outputs [skip ci]" || echo "No changes"
           git push
