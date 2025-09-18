@@ -1,2 +1,4 @@
 # factories/__init__.py
-# hace que la carpeta sea un paquete Python
+"""Tektra factories package marker (GitHub Actions discovery)."""
+
+__all__ = []
