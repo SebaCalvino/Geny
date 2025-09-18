@@ -1,102 +1,40 @@
-# factories/factory_images.py
-import os
-import base64
-import random
+import datetime as dt
+import json
 from pathlib import Path
-from datetime import datetime
 
-try:
-    from openai import OpenAI
-except Exception:
-    raise RuntimeError("Falta instalar 'openai'. Agregalo en requirements.txt")
+# Genera una imagen placeholder SVG (sin depender de APIs) + metadata con prompt
+SVG_TPL = """<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2b2d42"/>
+      <stop offset="100%" stop-color="#7c5cff"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#g)"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+        font-family="system-ui" font-size="42" fill="#ffffff" opacity="0.9">
+    Tektra — Epic Placeholder
+  </text>
+</svg>
+"""
 
-# ---------- Prompt scaffolding para fotorrealismo ----------
-CAMERAS = [
-    "Sony A7R IV con lente 85mm f/1.4",
-    "Canon R5 con lente 50mm f/1.2",
-    "Nikon Z9 con 35mm f/1.4",
-    "Fujifilm GFX100 con 110mm f/2",
-    "ARRI Alexa LF, anamórfico 40mm (fotograma cinematográfico)"
-]
+def generate_image(base_output_dir: Path, w=1600, h=900):
+    folder = Path(base_output_dir) / f"img_{dt.datetime.now().strftime('%H%M%S')}"
+    folder.mkdir(parents=True, exist_ok=True)
+    svg_path = folder / "image.svg"
+    svg_path.write_text(SVG_TPL.format(w=w, h=h), encoding="utf-8")
 
-LIGHTING = [
-    "luz dorada de atardecer (golden hour)",
-    "luz suave rebotada por ventana grande",
-    "luz dura cenital estilo editorial",
-    "neón cian-magenta con rim light",
-    "día nublado con contraste suave"
-]
+    prompt = ("Crea una imagen épica y futurista con estética espacial, "
+              "iluminación dramática, composición cinematográfica y contraste alto. "
+              "Usa paletas profundas con acentos violeta y blanco; agrega detalles "
+              "geométricos y neón sutil. — tektra")
 
-POST = [
-    "detalle de piel realista y poros visibles",
-    "bokeh cremoso con viñeteo ligero",
-    "grano fotográfico ISO 400",
-    "color grading cinematográfico",
-    "HDR sutil con sombras detalladas"
-]
-
-SUBJECTS = [
-    "retrato close-up de una persona pensando",
-    "un café humeante sobre una mesa de madera antigua",
-    "auto clásico estacionado en calle mojada de noche",
-    "chef emplatando en una cocina profesional",
-    "montaña nevada con un caminante en primer plano",
-    "perro corriendo en la playa, gotas de agua congeladas",
-    "ciudad futurista bajo lluvia con letreros de neón"
-]
-
-def build_prompt(topic: str | None = None) -> str:
-    subject = topic or random.choice(SUBJECTS)
-    cam = random.choice(CAMERAS)
-    light = random.choice(LIGHTING)
-    post = ", ".join(random.sample(POST, 2))
-    return (
-        f"{subject}. Fotografía hiper-realista, {cam}. "
-        f"Iluminación: {light}. Profundidad de campo corta, enfoque nítido en el sujeto. "
-        f"{post}. Evitar estilo ilustración o 3D. Sin texto, sin marcas de agua."
-    )
-
-# ---------- Generador ----------
-def make_images(base_dir: Path, how_many: int = 3, topic: str | None = None):
-    """
-    Genera 'how_many' imágenes realistas en base_dir usando OpenAI Images (gpt-image-1).
-    Devuelve: (titulo, relative_path, costo_estimado, meta_dict)
-    """
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("No se encontró OPENAI_API_KEY en el entorno del workflow.")
-
-    client = OpenAI(api_key=api_key)
-    outdir = Path(base_dir)
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    created = []
-    for i in range(how_many):
-        prompt = build_prompt(topic)
-        resp = client.images.generate(
-            model="gpt-image-1",
-            prompt=prompt,
-            size="1024x1024",
-            quality="high",
-            n=1
-        )
-
-        b64 = resp.data[0].b64_json
-        img_bytes = base64.b64decode(b64)
-        fname = f"img_{datetime.utcnow().strftime('%H%M%S')}_{i:02d}.png"
-        fpath = outdir / fname
-        with open(fpath, "wb") as f:
-            f.write(img_bytes)
-
-        est_cost = 0.04  # USD aprox por imagen 1024x1024
-
-        created.append((
-            "Foto fotorrealista — " + (topic or "random"),
-            fpath,
-            est_cost,
-            {"prompt": prompt, "provider": "openai:gpt-image-1"}
-        ))
-
-    title, path, cost, meta = created[-1]
-    relpath = path.relative_to(Path.cwd())
-    return title, relpath, cost, meta
+    meta = {
+        "type": "image",
+        "generated_at": dt.datetime.now().isoformat(),
+        "files": ["image.svg"],
+        "prompt": prompt,
+        "seed": None
+    }
+    (folder / "metadata.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False), encoding="utf-8")
+    return folder
