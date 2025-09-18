@@ -1,23 +1,23 @@
-mode: "local"        # o "github_actions"
-interval_minutes: 20
-daily_budget_usd: 1.5
-max_items_per_day:
-  images: 6
-  websites: 3
-  games: 2
-random_weights:
-  images: 0.5
-  websites: 0.35
-  games: 0.15
-providers:
-  images:
-    engine: "openai"
-  code:
-    engine: "openai"
-paths:
-  output: "./output"
-  db: "./log/status.db"
-telegram:
-  enabled: false
-  bot_token: "ENV:TELEGRAM_BOT_TOKEN"
-  chat_id: "ENV:TELEGRAM_CHAT_ID"
+# config.yaml — controla pesos y límites
+weights:
+  images: 0.40
+  webs: 0.40
+  games: 0.20
+
+limits:
+  max_items_per_day: 30
+  daily_budget_usd: 0
+
+output:
+  base_dir: "output"
+
+web_generation:
+  min_sections: 6        # hero, features, how-it-works, gallery, team, contact
+  min_images_per_section: 2
+  ensure_login_link: true
+  templates: ["corporate", "portfolio", "store", "blog", "gallery"]
+
+contact_generation:
+  preferred_domains: ["example.com","studio.com","designco.io","techhub.dev","makerstudio.ai"]
+  forbid_generic_domains: ["gmail.com","hotmail.com","yahoo.com"]
+  avatar_provider: "dicebear"   # dicebear | ui-avatars
