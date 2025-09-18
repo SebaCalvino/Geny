@@ -2,7 +2,7 @@ name: Tektra schedule
 
 on:
   schedule:
-    - cron: "0 * * * *" # cada hora
+    - cron: "*/30 * * * *"   # cada 30 minutos
   workflow_dispatch:
 
 jobs:
@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -26,13 +26,20 @@ jobs:
       - name: Create output dir
         run: mkdir -p output
 
+      - name: Expose repo in PYTHONPATH
+        run: |
+          echo "PYTHONPATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+          echo "PWD at run:" && pwd
+          ls -la
+
       - name: Run orchestrator (3 items por ciclo)
-        run: python orchestrator.py
+        run: |
+          python -u orchestrator.py
 
       - name: Commit outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add output/*
-          git commit -m "Auto: add new Tektra outputs [skip ci]" || echo "No changes"
+          git add -A output || true
+          git commit -m "Tektra: auto outputs $(date -u +'%Y-%m-%dT%H:%M:%SZ')" || echo "No changes to commit"
           git push
