@@ -64,5 +64,27 @@
     ],
     "errors": [],
     "finished_at": "2025-09-19T15:38:41.090348Z"
+  },
+  {
+    "started_at": "2025-09-19T16:20:21.903484Z",
+    "items": [
+      {
+        "type": "website",
+        "status": "ok",
+        "result": "/home/runner/work/Tektra/Tektra/output/2025-09-19/web_tektra-fallback_162021"
+      },
+      {
+        "type": "image",
+        "status": "ok",
+        "result": "/home/runner/work/Tektra/Tektra/output/2025-09-19/img_tektra-fallback_162021"
+      },
+      {
+        "type": "game",
+        "status": "ok",
+        "result": "/home/runner/work/Tektra/Tektra/output/2025-09-19/game_tektra-fallback_162021"
+      }
+    ],
+    "errors": [],
+    "finished_at": "2025-09-19T16:20:21.962509Z"
   }
 ]
