@@ -29,8 +29,13 @@ jobs:
       - name: Expose repo in PYTHONPATH
         run: |
           echo "PYTHONPATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
-          echo "PWD at run:" && pwd
+
+      - name: Show tree (debug)
+        run: |
+          echo "=== REPO TREE (top-level) ==="
           ls -la
+          echo "=== FACTORIES (recursive) ==="
+          find . -maxdepth 4 -type f -name "*factory*.py" -print || true
 
       - name: Run orchestrator (3 items por ciclo)
         run: |
