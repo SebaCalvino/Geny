@@ -1,3 +1,3 @@
 # factories/__init__.py
-"""Tektra factories package marker (GitHub Actions discovery)."""
+"""Tektra factories package marker."""
 __all__ = []
