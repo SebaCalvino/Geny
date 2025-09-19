@@ -99,8 +99,6 @@ def main() -> None:
     def _safe_run(name: str, fn):
         item = {"type": name, "status": "ok"}
         try:
-            # Cada factory debería encargarse de crear su carpeta/archivo
-            # y devolver algún descriptor o ruta si es posible.
             result = fn()
             item["result"] = result if result is not None else "ok"
             log.info("Factory %s completada.", name)
@@ -124,7 +122,6 @@ def main() -> None:
     summary["finished_at"] = dt.datetime.utcnow().isoformat() + "Z"
     write_run_log(summary)
 
-    # Si todas fallaron, devolvemos error para que se note en CI.
     if all(i["status"] == "error" for i in summary["items"]):
         log.error("Todas las factories fallaron.")
         sys.exit(2)
