@@ -2,13 +2,12 @@ name: Tektra schedule
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # cada 30 minutos
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
   run-tektra:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,19 +26,16 @@ jobs:
         run: mkdir -p output
 
       - name: Expose repo in PYTHONPATH
-        run: |
-          echo "PYTHONPATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
 
-      - name: Show tree (debug)
+      - name: Debug tree (find factories)
         run: |
-          echo "=== REPO TREE (top-level) ==="
-          ls -la
-          echo "=== FACTORIES (recursive) ==="
-          find . -maxdepth 4 -type f -name "*factory*.py" -print || true
+          echo "=== FACTORY FILES FOUND ==="
+          find . -maxdepth 4 -type f -name "*_factory.py" -print || true
+          echo "==========================="
 
       - name: Run orchestrator (3 items por ciclo)
-        run: |
-          python -u orchestrator.py
+        run: python -u orchestrator.py
 
       - name: Commit outputs
         run: |
