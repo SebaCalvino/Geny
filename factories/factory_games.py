@@ -1,77 +1,129 @@
-import datetime as dt
+# -*- coding: utf-8 -*-
 from pathlib import Path
+import datetime as dt
+import json
+import re
 
-GAME_HTML = """<!DOCTYPE html>
-<html lang="es"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Orbit Runner — Tektra</title>
+ROOT = Path(__file__).resolve().parents[1]
+
+def _slug(s: str) -> str:
+    s = s.lower()
+    s = re.sub(r"[^a-z0-9\- ]+", "", s)
+    s = re.sub(r"\s+", "-", s).strip("-")
+    return s or "game"
+
+def _today_dir() -> Path:
+    d = dt.datetime.now().strftime("%Y-%m-%d")
+    p = ROOT / "output" / d
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+def generate_game():
+    """
+    Genera un juego simple (index.html con canvas + JS embebido)
+    en output/<YYYY-MM-DD>/game_<slug>_<timestamp>/
+    Devuelve la ruta creada (string).
+    """
+    title = "Tektra — Orb Runner"
+    slug = _slug(title)
+    stamp = dt.datetime.now().strftime("%H%M%S")
+    out = _today_dir() / f"game_{slug}_{stamp}"
+    out.mkdir(parents=True, exist_ok=True)
+
+    html = f"""<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>{title}</title>
 <style>
-  body{margin:0;background:#0b0b12;color:#f5f6fb;font-family:system-ui}
-  canvas{display:block;margin:4vh auto;border:1px solid #222;background:#111}
-  .hud{max-width:820px;margin:0 auto;display:flex;justify-content:space-between;padding:1rem}
-  .btn{background:#7c5cff;color:#fff;padding:.5rem .9rem;border-radius:.5rem;text-decoration:none}
+  html,body{{margin:0;height:100%;background:#0b0b0f;color:#eaeaf2;font-family:system-ui,Segoe UI,Roboto}}
+  #hud{{position:fixed;top:8px;left:8px;background:#111a;border:1px solid #222;padding:8px 12px;border-radius:10px}}
+  canvas{{display:block;margin:auto;max-width:100vw;max-height:100vh}}
+  button{{background:#7a5cff;border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}}
 </style>
-</head><body>
-<div class="hud">
-  <div>Puntuación: <span id="score">0</span></div>
-  <a class="btn" href="#" onclick="resetGame();return false;">Reiniciar</a>
-</div>
-<canvas id="cv" width="720" height="480" aria-label="Juego simple"></canvas>
+</head>
+<body>
+<div id="hud">Puntos: <span id="score">0</span> · <button id="reset">Reiniciar</button></div>
+<canvas id="c" width="720" height="420"></canvas>
 <script>
-const cv = document.getElementById('cv');
-const cx = cv.getContext('2d');
-let t=0, score=0, alive=true, px=360, py=380, vx=0;
+const cvs = document.getElementById('c');
+const ctx = cvs.getContext('2d');
+const scoreEl = document.getElementById('score');
+const resetBtn = document.getElementById('reset');
 
-document.addEventListener('keydown', e=>{
-  if(e.key==='ArrowLeft') vx=-4;
-  if(e.key==='ArrowRight') vx=4;
-});
-document.addEventListener('keyup', e=>{
-  if(e.key==='ArrowLeft' || e.key==='ArrowRight') vx=0;
-});
+let player={{x:80,y:cvs.height/2,r:12,dy:0}};
+let orbs=[];
+let score=0, alive=true, t=0;
 
-function resetGame(){
-  t=0; score=0; alive=true; px=360; py=380; vx=0;
+function spawn(){
+  const y = 60 + Math.random()*(cvs.height-120);
+  const r = 8 + Math.random()*10;
+  const v = 2 + Math.random()*3;
+  orbs.push({x:cvs.width+20,y,r,v});
 }
-function spawnEnemy(i){
-  const r = 80 + 40*Math.sin((t+i)*0.5);
-  const cx0 = 360, cy0 = 220;
-  const ang = (t*0.02 + i)*1.2;
-  return {x: cx0 + Math.cos(ang)*r, y: cy0 + Math.sin(ang)*r, r: 10+5*((i%3)==0)};
-}
+
 function loop(){
-  requestAnimationFrame(loop);
   t++;
-  cx.clearRect(0,0,cv.width,cv.height);
-
-  // Player
-  px += vx;
-  px = Math.max(20, Math.min(cv.width-20, px));
-  cx.fillStyle = '#7c5cff';
-  cx.beginPath(); cx.arc(px, py, 12, 0, Math.PI*2); cx.fill();
-
-  // Enemies
-  let hit=false;
-  for(let i=0;i<20;i++){
-    const e=spawnEnemy(i);
-    cx.fillStyle = '#a7a9b5';
-    cx.beginPath(); cx.arc(e.x, e.y, e.r, 0, Math.PI*2); cx.fill();
-    const dx=px-e.x, dy=py-e.y;
-    if(Math.hypot(dx,dy) < (12+e.r)) hit=true;
+  if(alive){ 
+    if(t%50===0) spawn();
+    player.dy *= 0.98;
+    player.y += player.dy;
+    player.y = Math.max(player.r, Math.min(cvs.height-player.r, player.y));
+    orbs.forEach(o=>o.x-=o.v);
+    orbs = orbs.filter(o=>o.x>-20);
+    // colisiones
+    for(const o of orbs){
+      const dx = o.x-player.x, dy=o.y-player.y;
+      if(Math.hypot(dx,dy) < o.r+player.r){ alive=false; break; }
+      if(o.x<player.x && !o.scored){ o.scored=true; score++; scoreEl.textContent=score; }
+    }
   }
-  if(!hit && alive){ score++; document.getElementById('score').textContent=score; }
-  if(hit) alive=false;
-  if(!alive){
-    cx.fillStyle='#fff'; cx.fillText('Perdiste — Reinicia', 280, 240);
-  }
+
+  // render
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  // fondo gradiente
+  const g=ctx.createLinearGradient(0,0,0,cvs.height);
+  g.addColorStop(0,'#0b0b0f'); g.addColorStop(1,'#7a5cff');
+  ctx.fillStyle=g; ctx.fillRect(0,0,cvs.width,cvs.height);
+
+  // player
+  ctx.beginPath(); ctx.fillStyle='#eaeaf2';
+  ctx.arc(player.x,player.y,player.r,0,Math.PI*2); ctx.fill();
+
+  // orbs
+  ctx.fillStyle='#111';
+  orbs.forEach(o=>{{ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,Math.PI*2);ctx.fill();}});
+
+  if(!alive){ ctx.fillStyle='#eaeaf2'; ctx.fillText('Perdiste — Enter para reiniciar', cvs.width/2-110, cvs.height/2); }
+  requestAnimationFrame(loop);
 }
+
+window.addEventListener('keydown',e=>{{
+  if(e.code==='Space') player.dy -= 4;
+  if(e.code==='Enter' && !alive) restart();
+}});
+resetBtn.onclick = ()=>restart();
+
+function restart(){{
+  orbs=[]; score=0; scoreEl.textContent=0; alive=true; player.y=cvs.height/2; player.dy=0; t=0;
+}}
+
 loop();
 </script>
-</body></html>
+</body>
+</html>
 """
+    (out / "index.html").write_text(html, encoding="utf-8")
 
-def generate_game(base_output_dir: Path):
-    folder = Path(base_output_dir) / f"game_orbit_runner_{dt.datetime.now().strftime('%H%M%S')}"
-    folder.mkdir(parents=True, exist_ok=True)
-    (folder / "index.html").write_text(GAME_HTML, encoding="utf-8")
-    return folder
+    meta = {
+        "type": "game",
+        "title": title,
+        "created_at": dt.datetime.now().isoformat(),
+        "path": str(out),
+        "controls": "Barra espaciadora para subir. Enter o botón para reiniciar.",
+        "win_condition": "Superar tantos orbes como sea posible (score)."
+    }
+    (out / "metadata.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    return str(out)
+
