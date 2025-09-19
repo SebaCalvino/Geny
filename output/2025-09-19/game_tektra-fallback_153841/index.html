@@ -1,0 +1,21 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tektra — Fallback Game</title>
+<style>html,body{margin:0;background:#0b0b0f;color:#eaeaf2;font-family:system-ui}
+#hud{position:fixed;top:8px;left:8px;background:#111a;border:1px solid #222;padding:8px 12px;border-radius:10px}
+canvas{display:block;margin:auto;max-width:100vw;max-height:100vh}
+button{background:#7a5cff;border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}</style>
+</head><body>
+<div id="hud">Puntos: <span id="score">0</span> · <button id="reset">Reiniciar</button></div>
+<canvas id="c" width="720" height="420"></canvas>
+<script>
+const cvs=document.getElementById('c'),ctx=cvs.getContext('2d');let s=0,a=true,p={x:80,y:cvs.height/2,r:12,dy:0},o=[];
+function sp(){const y=60+Math.random()*(cvs.height-120),r=8+Math.random()*10,v=2+Math.random()*3;o.push({x:cvs.width+20,y,r,v});}
+document.getElementById('reset').onclick=()=>rt();window.addEventListener('keydown',e=>{if(e.code==='Space')p.dy-=4;if(e.code==='Enter'&&!a)rt();});
+function rt(){o=[];s=0;a=true;p.y=cvs.height/2;p.dy=0;}
+let t=0; (function L(){t++; if(a){if(t%50===0)sp(); p.dy*=0.98; p.y=Math.max(p.r,Math.min(cvs.height-p.r,p.y+p.dy)); o.forEach(k=>k.x-=k.v); o=o.filter(k=>k.x>-20);
+for(const k of o){const dx=k.x-p.x,dy=k.y-p.y;if(Math.hypot(dx,dy)<k.r+p.r){a=false;break;} if(k.x<p.x && !k.s){k.s=true; s++; document.getElementById('score').textContent=s;}}}
+ctx.clearRect(0,0,cvs.width,cvs.height);const g=ctx.createLinearGradient(0,0,0,cvs.height);g.addColorStop(0,'#0b0b0f');g.addColorStop(1,'#7a5cff');ctx.fillStyle=g;ctx.fillRect(0,0,cvs.width,cvs.height);
+ctx.beginPath();ctx.fillStyle='#eaeaf2';ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#111';o.forEach(k=>{ctx.beginPath();ctx.arc(k.x,k.y,k.r,0,Math.PI*2);ctx.fill();});
+if(!a){ctx.fillStyle='#eaeaf2';ctx.fillText('Perdiste — Enter para reiniciar', cvs.width/2-110, cvs.height/2);} requestAnimationFrame(L);})();</script>
+</body></html>
