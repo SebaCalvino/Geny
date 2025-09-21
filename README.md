@@ -11,7 +11,7 @@ It captures the project’s essence: an endless digital artisan forging creation
 
 **Creativity never sleeps, neither does Tektra.**
 
----
+--- 
 
 ## ✨ Features
 
